@@ -79,13 +79,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Core\Pair.cs" />
-    <Compile Include="Assets\Scripts\ClientConstants.cs" />
+    <Compile Include="Assets\Scripts\Constants\ClientConstants.cs" />
+    <Compile Include="Assets\Scripts\Constants\InputAxis.cs" />
+    <Compile Include="Assets\Scripts\Constants\Layers.cs" />
+    <Compile Include="Assets\Scripts\Constants\Scenes.cs" />
+    <Compile Include="Assets\Scripts\Constants\Tags.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Base\GravitationalBody.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Player\Player.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Player\PlayerController.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\TargetTrackingCamera.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Worlds\World.cs" />
     <Compile Include="Assets\Scripts\Singletons\CameraManager.cs" />
     <Compile Include="Assets\Scripts\Singletons\GameManager.cs" />
     <Compile Include="Assets\Scripts\Singletons\Singleton.cs" />
     <Compile Include="Assets\Scripts\Singletons\UIManager.cs" />
     <Compile Include="Assets\Scripts\UI\Screens\LoadingScreen.cs" />
     <Compile Include="Assets\Scripts\UI\Screens\MainMenuScreen.cs" />
+    <Compile Include="Assets\Scripts\UI\Screens\SettingsScreen.cs" />
     <Compile Include="Assets\Scripts\UI\Screens\UIScreen.cs" />
     <Compile Include="Assets\Scripts\UI\UIButton.cs" />
     <Compile Include="Assets\Scripts\Util\DontDestroyOnLoad.cs" />

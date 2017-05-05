@@ -7,29 +7,46 @@ public enum ScreenName
 {
     Splash,
     Loading,
-    MainMenu
+    MainMenu,
+    Settings
 }
 
 public class UIManager : Singleton<UIManager>
 {
-    List<UIScreen> ActiveScreens;
-    UIScreen CurrentActiveScreen;
+    List<UIScreen> InstantiatedScreens;
+    Stack<UIScreen> OverlayStack;
+    Stack<UIScreen> PrimaryScreenStack;
+
+    UIScreen CurrentActiveScreen
+    {
+        get
+        {
+            return OverlayStack == null || OverlayStack.Count == 0 ? null : OverlayStack.Peek(); 
+        }
+    }
 
     void Start()
     {
-        ActiveScreens = new List<UIScreen>();
+        InstantiatedScreens = new List<UIScreen>();
+        OverlayStack = new Stack<UIScreen>();
+        PrimaryScreenStack = new Stack<UIScreen>();
     }
 
     public void GoToMainMenu()
     {
-        SceneManager.LoadScene("MenuScene");
+        SceneManager.LoadScene(Scenes.Menu);
 
         ShowScreen(ScreenName.MainMenu);
     }
 
+    public void StartGame ()
+    {
+        SceneManager.LoadScene(Scenes.Gameplay);
+    }
+
     public void ShowScreen(ScreenName name, System.Action onScreenReady = null)
     {
-        if(CurrentActiveScreen == null || CurrentActiveScreen.screenName != name)
+        if (CurrentActiveScreen == null || CurrentActiveScreen.screenName != name)
         {
             DisplayScreen(ScreenName.Loading, () =>
             {
@@ -38,7 +55,7 @@ public class UIManager : Singleton<UIManager>
                     DisplayScreen(name, () =>
                     {
                         ExitScreen(ScreenName.Loading);
-                        if(onScreenReady != null)
+                        if (onScreenReady != null)
                         {
                             onScreenReady();
                         }
@@ -50,7 +67,7 @@ public class UIManager : Singleton<UIManager>
 
     void DisplayScreen(ScreenName name, System.Action onScreenReady = null)
     {
-        UIScreen screen = GetActiveScreen(name);
+        UIScreen screen = GetScreenInstance(name);
 
         if (screen == null)
         {
@@ -62,14 +79,29 @@ public class UIManager : Singleton<UIManager>
 
     IEnumerator DisplayScreen(UIScreen screenInstance, System.Action onScreenReady = null)
     {
+        screenInstance.gameObject.SetActive(true); // ensure screen is active
+
+        Canvas canvas = screenInstance.GetComponent<Canvas>();
         if (screenInstance.IsPrimaryScreen)
         {
             CloseAllScreens();
-            screenInstance.GetComponent<Canvas>().worldCamera = CameraManager.instance.MainCamera;
+            canvas.worldCamera = CameraManager.instance.MainCamera;
         }
-        else 
+        else
         {
-            screenInstance.GetComponent<Canvas>().worldCamera = CameraManager.instance.GetNewNamedOverlayCamera(screenInstance.screenName.ToString()); //string.Format("[Overlay] {0}", screenInstance.name);
+            canvas.worldCamera = CameraManager.instance.GetNewNamedOverlayCamera(screenInstance.screenName.ToString());
+            canvas.worldCamera.depth = OverlayStack.Count;
+
+            canvas.worldCamera.transform.position = new Vector3(0, (OverlayStack.Count + 1) * canvas.worldCamera.orthographicSize * 3);
+
+            if (!screenInstance.IsLoadingScreen)
+            {
+                UIScreen loading = GetScreenInstance(ScreenName.Loading);
+                if (loading != null && loading.isActiveAndEnabled)
+                {
+                    loading.GetComponent<Canvas>().worldCamera.depth = OverlayStack.Count + 1;
+                }
+            }
         }
 
         yield return StartCoroutine(screenInstance.Init());
@@ -82,11 +114,29 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
-    void SetActiveScreen(UIScreen screen)
+    void SetActiveScreen(UIScreen screen, bool isNewScreen = true)
     {
-        screen.PrevScreen = CurrentActiveScreen;
-        CurrentActiveScreen = screen;
-        ActiveScreens.Add(screen);
+        if (CurrentActiveScreen != null)
+        {
+            CurrentActiveScreen.MainCanvasGroup.interactable = false; // disable interaction on previous screen
+        }
+
+        if (isNewScreen)
+        {
+            if(!InstantiatedScreens.Contains(screen))
+            {
+                InstantiatedScreens.Add(screen);
+            }
+
+            if(screen.IsPrimaryScreen)
+            {
+                PrimaryScreenStack.Push(screen);
+            }
+            else if(!screen.IsLoadingScreen)
+            {
+                OverlayStack.Push(screen);
+            }
+        }
 
         screen.MainCanvasGroup.interactable = true;
     }
@@ -94,29 +144,49 @@ public class UIManager : Singleton<UIManager>
     /// <summary>
     /// Returns the first instantiated screen with the given name, regardless of if it is active
     /// </summary>
-    UIScreen GetActiveScreen(ScreenName name)
+    UIScreen GetScreenInstance(ScreenName name)
     {
-        for (int i = 0; i < ActiveScreens.Count; i++)
+        for (int i = 0; i < InstantiatedScreens.Count; i++)
         {
-            if (ActiveScreens[i].screenName == name)
+            if (InstantiatedScreens[i].screenName == name)
             {
-                return ActiveScreens[i];
+                return InstantiatedScreens[i];
             }
         }
         return null;
     }
 
+    public void CloseScreen()
+    {
+        UIScreen curScreen = OverlayStack.Pop(); // remove current screen from stack and destroy it
+        curScreen.Destroy();
+        
+        if (OverlayStack.Count > 0)
+        {
+            UIScreen nextScreen = OverlayStack.Peek();
+            if (nextScreen.SkipBackNav)
+            {
+                CloseScreen();
+            }
+            else
+            {
+                SetActiveScreen(nextScreen, false);
+            }
+        }
+    }
+
     void CloseAllScreens()
     {
-        for (int i = ActiveScreens.Count - 1; i >= 0; i--)
+        for (int i = InstantiatedScreens.Count - 1; i >= 0; i--)
         {
-            if (ActiveScreens[i].isActiveAndEnabled && ActiveScreens[i].screenName != ScreenName.Loading) // close all screens except loading
+            if (InstantiatedScreens[i].isActiveAndEnabled && !InstantiatedScreens[i].IsLoadingScreen) // close all screens except loading
             {
-                ActiveScreens[i].Exit();
+                InstantiatedScreens[i].Exit();
             }
-            if(!ActiveScreens[i].IsPersistentScreen) // purge non persistent screens from the list
+
+            if (!InstantiatedScreens[i].IsPersistentScreen) // purge non persistent screens from the list
             {
-                ActiveScreens.RemoveAt(i);
+                InstantiatedScreens.RemoveAt(i);
             }
         }
     }
@@ -131,11 +201,11 @@ public class UIManager : Singleton<UIManager>
         return string.Format("{0}{1}{2}", ClientConstants.BASE_CANVAS_RESOURCE_PATH, name.ToString(), ClientConstants.CANVAS_RESOURCE_SUFFIX);
     }
 
-    void ExitScreen (ScreenName name)
+    void ExitScreen(ScreenName name)
     {
-        UIScreen screen = GetActiveScreen(name);
+        UIScreen screen = GetScreenInstance(name);
 
-        if(screen != null && screen.isActiveAndEnabled)
+        if (screen != null && screen.isActiveAndEnabled)
         {
             screen.Exit();
         }

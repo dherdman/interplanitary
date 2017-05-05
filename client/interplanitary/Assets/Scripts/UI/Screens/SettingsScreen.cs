@@ -3,29 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MainMenuScreen : UIScreen
+public class SettingsScreen : UIScreen
 {
     public override ScreenName screenName
     {
         get
         {
-            return ScreenName.MainMenu;
+            return ScreenName.Settings;
         }
     }
 
     public override IEnumerator Init()
     {
-        yield return new WaitForSeconds(2.5f);
-    }
-
-    public void StartGame ()
-    {
-        Debug.Log("start");
-    }
-
-    public void GoToSettings ()
-    {
-        UIManager.instance.ShowScreen(ScreenName.Settings);
+        yield return new WaitForSeconds(5);
     }
 
     protected override void OnExit()

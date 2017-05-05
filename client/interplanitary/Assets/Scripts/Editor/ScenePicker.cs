@@ -18,4 +18,10 @@ public class SceneLoader
     {
         EditorSceneManager.OpenScene(PATH_ROOT + "MenuScene.unity");
     }
+
+    [MenuItem(MENU_ROOT + "Game")]
+    static void LoadGame()
+    {
+        EditorSceneManager.OpenScene(PATH_ROOT + "Gameplay.unity");
+    }
 }

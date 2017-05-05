@@ -9,6 +9,14 @@ public abstract class UIScreen : MonoBehaviour
         get;
     }
 
+    public bool IsLoadingScreen
+    {
+        get
+        {
+            return screenName == ScreenName.Loading;
+        }
+    }
+
     [Header("UI Screen Configuration")]
     [SerializeField]
     bool _isPrimaryScreen;
@@ -39,10 +47,6 @@ public abstract class UIScreen : MonoBehaviour
             return _isPersistentScreen;
         }
     }
-
-    [HideInInspector]
-    public UIScreen PrevScreen;
-
 
     [HideInInspector]
     public CanvasGroup MainCanvasGroup;
@@ -93,45 +97,59 @@ public abstract class UIScreen : MonoBehaviour
 
     public void Exit()
     {
+        Debug.Log("Exiting " + screenName);
         currentScreenState = ScreenState.Exit;
         OnExit();
-
-        Destroy();
+        
+        // if not a loading screen, go through UIManager to process screen closing
+        if(IsLoadingScreen)
+        {
+            Destroy();
+        }
+        else
+        {
+            UIManager.instance.CloseScreen();
+        }
     }
 
     /// <summary>
     /// Only to be called from UIManager
     /// </summary>
-    void Destroy()
+    public void Destroy()
     {
-        Canvas screenCanvas = GetComponent<Canvas>();
+        if(IsPersistentScreen)
+        {
+            // hide screen and make it non-interactable
+            MainCanvasGroup.interactable = false;
+            gameObject.SetActive(false);
+        }
+        else
+        {
+            Destroy(gameObject); // if non persistent, destroy screen gameobject
+        }
 
+        Canvas screenCanvas = GetComponent<Canvas>();
         Camera cam = null;
-        if(screenCanvas != null)
+        if (screenCanvas != null)
         {
             cam = screenCanvas.worldCamera;
         }
 
-        if (screenCanvas != null && screenCanvas.worldCamera != null)
-        {
-            Destroy(screenCanvas.worldCamera.gameObject);
-        }
+        DisposeOfCamera(!IsPersistentScreen, cam);
+    }
 
-        if (IsPersistentScreen)
+    void DisposeOfCamera (bool destroyNotHide, Camera cam)
+    {
+        if(cam != null && cam != Camera.main && cam.gameObject != null)
         {
-            gameObject.SetActive(false); // keep screen around, just hide it
-            if(cam != null)
-            {
-                cam.gameObject.SetActive(false);
-            }
-        }
-        else
-        {
-            if(cam != null)
+            if(destroyNotHide)
             {
                 Destroy(cam.gameObject);
             }
-            Destroy(gameObject); // destroy self if non-persistent
+            else
+            {
+                cam.gameObject.SetActive(false);
+            }
         }
     }
 }
