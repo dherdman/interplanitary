@@ -29,8 +29,8 @@ public class TargetTrackingCamera : MonoBehaviour
         if (target != null)
         {
             cam.enabled = true;
-            transform.position = target.transform.position - relativePosition;
-            transform.LookAt(target);
+            transform.position = target.position - relativePosition;
+            transform.LookAt(target, target.up);
         }
         else
         {

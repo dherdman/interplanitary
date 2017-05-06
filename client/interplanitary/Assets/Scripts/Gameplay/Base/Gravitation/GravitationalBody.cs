@@ -12,7 +12,7 @@ public abstract class GravitationalBody : MonoBehaviour
         get; private set;
     }
 
-    public Vector3 CenterOfMass
+    public Vector2 CenterOfMass
     {
         get
         {
@@ -29,27 +29,33 @@ public abstract class GravitationalBody : MonoBehaviour
 
     protected abstract void OnAwake();
 
-    public Vector3 FieldStrengthAtPoint(Vector3 point)
+    public virtual Vector2 FieldStrengthAtPoint(Vector2 point)
     {
-        if(point == CenterOfMass)
+        if (point == CenterOfMass)
         {
             Debug.LogError("[GravitationalBody] Attempting to calculate field strength with zero radius (divide by zero)");
-            return Vector3.zero; // cannot have same center of mass, use zero
+            return Vector2.zero; // cannot have same center of mass, return zero force instead of infinite
         }
 
-        Vector3 direction = point - CenterOfMass;
+        Vector2 direction = CenterOfMass - point;
 
-        return (G * massiveBody.mass / direction.sqrMagnitude) * direction.normalized;
+        return GetFieldStrength(massiveBody.mass, direction);
     }
 
-    public Vector3 GravitationalForce(GravitationalBody other)
+    protected Vector2 GetFieldStrength(float mass, Vector2 direction)
+    {
+        return (G * mass / direction.sqrMagnitude) * direction.normalized;
+    }
+
+    public virtual Vector2 GravitationalPull(GravitationalBody other)
     {
         if (other.CenterOfMass == this.CenterOfMass)
         {
             Debug.LogError("[GravitationalBody] Attempting to calculate field strength with zero radius (divide by zero)");
-            return Vector3.zero; // cannot have same center of mass, use zero
+            return Vector2.zero; // cannot have same center of mass, return zero force instead of infinite
         }
 
         return FieldStrengthAtPoint(other.CenterOfMass) * other.massiveBody.mass;
     }
+
 }

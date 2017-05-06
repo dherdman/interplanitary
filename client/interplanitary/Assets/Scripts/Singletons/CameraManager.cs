@@ -8,7 +8,9 @@ public class CameraManager : Singleton<CameraManager>
     Camera OverlayCamera;
 
     [SerializeField]
-    TargetTrackingCamera PlayerCamera;
+    TargetTrackingCamera playerCameraPrefab;
+
+    TargetTrackingCamera playerCameraInstance;
 
     public Camera MainCamera
     {
@@ -28,6 +30,11 @@ public class CameraManager : Singleton<CameraManager>
 
     public void AssignPlayerCameraToTarget(Transform target, Vector3 relativePosition)
     {
-        PlayerCamera.FollowTarget(target, relativePosition);
+        if(playerCameraInstance == null)
+        {
+            playerCameraInstance = Instantiate(playerCameraPrefab, transform) as TargetTrackingCamera;
+        }
+
+        playerCameraInstance.FollowTarget(target, relativePosition);
     }
 }

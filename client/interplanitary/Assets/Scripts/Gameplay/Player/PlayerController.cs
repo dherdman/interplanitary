@@ -5,73 +5,120 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class PlayerController : GravitationalBody
 {
+    [Header("Player Movement")]
     [SerializeField]
-    float MaxRotationPerFrame;
+    float GroundedMoveSpeed;
+    [SerializeField]
+    float AirMoveSpeed;
+
+    Vector3 recentMovementVelocity;
+
+    [Header("Gravity Configuration")]
+    [SerializeField]
+    float MaxRotationPerSecond;
 
     float DistToGround;
-
-    Vector3 GravitationalDown;
-    Collider PlayerCollider;
 
     protected override void OnAwake()
     {
         DistToGround = GetComponent<Collider>().bounds.extents.y;
     }
 
-    bool _grounded = false;
-    bool IsGrounded // !!! TODO fix spazzy rotation on hit
+    Vector2? groundedGravity;
+    bool IsGrounded
     {
         get
         {
-            return _grounded;
+            return groundedGravity.HasValue;
+        }
+    }
+
+    float MovementSpeed
+    {
+        get
+        {
+            return IsGrounded ? GroundedMoveSpeed : AirMoveSpeed;
         }
     }
 
     void OnCollisionEnter(Collision col)
     {
-        if(col.gameObject.layer == LayerMask.NameToLayer(Layers.Worlds))
+        GravitationalBody body = col.gameObject.GetComponent<GravitationalBody>();
+        if (body != null && col.contacts.Length > 0)
         {
-            _grounded = true;
+            ContactPoint contact = col.contacts[0];
+            Vector2 normal2d = contact.normal;
+            groundedGravity = Vector2.Dot(body.GravitationalPull(this), normal2d) * normal2d;
+
+            transform.position = contact.point + contact.normal * DistToGround;
+
+            // !!! TODO snap to ground on hit
+            SmoothRotateParallel(groundedGravity.Value, true);
         }
     }
 
     void OnCollisionExit(Collision col)
     {
-        if (col.gameObject.layer == LayerMask.NameToLayer(Layers.Worlds))
+        GravitationalBody body = col.gameObject.GetComponent<GravitationalBody>();
+        if (body != null)
         {
-            _grounded = false;
+            groundedGravity = null;
         }
     }
 
     void FixedUpdate()
     {
+        if (!IsGrounded)
+        {
+            ApplyGravity();
+        }
+
+        MoveCharacter(); // !!! TODO move to animation system
+    }
+
+    void MoveCharacter()
+    {
+        massiveBody.AddForce(-recentMovementVelocity, ForceMode.VelocityChange);
+        recentMovementVelocity = MovementSpeed * Input.GetAxis(InputAxis.PlayerControl.HORIZONTAL) * transform.right;
+        massiveBody.AddForce(recentMovementVelocity, ForceMode.VelocityChange);
+    }
+
+    void ApplyGravity()
+    {
         GravitationalBody[] bodies = FindObjectsOfType<GravitationalBody>();
 
-        Vector3 netForce = new Vector3();
+        Vector2 netForce = new Vector3();
         for (int i = 0; i < bodies.Length; i++)
         {
-            if (bodies[i] != this)
+            if (bodies[i] != this && bodies[i].isActiveAndEnabled)
             {
-                Vector3 force = this.GravitationalForce(bodies[i]);
+                Vector2 force = bodies[i].GravitationalPull(this);
                 netForce += force;
             }
         }
 
-        SmoothRotateParallel(netForce);
+        SmoothRotateParallel(netForce, false);
 
         massiveBody.AddForce(netForce);
     }
 
-    void SmoothRotateParallel(Vector3 parallel)
+    void SmoothRotateParallel(Vector2 gravity, bool snap)
     {
-        Vector3 down = transform.rotation.eulerAngles - parallel;
+        float delta = Vector2.Angle(transform.up, -gravity); // absolute degree change
 
-        if (down.magnitude > MaxRotationPerFrame)
+        if (!snap)
         {
-            down = down.normalized * MaxRotationPerFrame;
+            delta *= Time.fixedDeltaTime; // change in "up" in degrees/second
+
+            if (MaxRotationPerSecond > 0 && Mathf.Abs(delta) > MaxRotationPerSecond)
+            {
+                delta = delta < 0 ? -MaxRotationPerSecond : MaxRotationPerSecond;
+            }
         }
 
-        transform.rotation = Quaternion.FromToRotation(Vector3.right, down);
+        Vector3 rotation = transform.rotation.eulerAngles + new Vector3(0, 0, delta);
+
+        massiveBody.MoveRotation(Quaternion.Euler(rotation));
     }
 
 }

@@ -1,4 +1,6 @@
 ﻿
+using UnityEngine;
+
 public static class InputAxis
 {
     public static class PlayerControl
@@ -10,5 +12,10 @@ public static class InputAxis
     {
         public const string HORIZONTAL = "ShipHorizontal";
         public const string VERTICAL = "ShipVertical";
+    }
+    public static class Debug
+    {
+        public const KeyCode PAUSE = KeyCode.LeftBracket;
+        public const KeyCode STEP = KeyCode.RightBracket;
     }
 }
