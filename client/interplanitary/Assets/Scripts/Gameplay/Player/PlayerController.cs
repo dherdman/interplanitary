@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider))]
+[RequireComponent(typeof(Collider)), RequireComponent(typeof(Rigidbody))]
 public class PlayerController : GravitationalBody
 {
     static class ANIM_STATE
@@ -45,6 +45,7 @@ public class PlayerController : GravitationalBody
     float DistToGround;
 
     Animator animator;
+    Rigidbody massiveBody;
 
     Plane mouseInteractionPlane;
 
@@ -52,10 +53,11 @@ public class PlayerController : GravitationalBody
     {
         DistToGround = GetComponent<Collider>().bounds.extents.y;
         BaseDistToGround = DistToGround;
-        animator = GetComponent<Animator>();
 
+        massiveBody = GetComponent<Rigidbody>();
         massiveBody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
 
+        animator = GetComponent<Animator>();
         animator.applyRootMotion = false;
 
         mouseInteractionPlane = new Plane(Vector3.up, Vector3.right, Vector3.zero);
@@ -78,7 +80,7 @@ public class PlayerController : GravitationalBody
         }
     }
 
-    void OnCollisionEnter(Collision col)
+    void OnCollisionStay(Collision col)
     {
         GravitationalBody body = col.gameObject.GetComponent<GravitationalBody>();
         if (body != null && col.contacts.Length > 0)
@@ -131,7 +133,7 @@ public class PlayerController : GravitationalBody
         }
         else
         {
-            HandleGroundedMovement(moveAmount, Input.GetButton(InputAxis.PlayerControl.JUMP));
+            HandleGroundedMovement(moveAmount, Input.GetButtonDown(InputAxis.PlayerControl.JUMP));
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿
+using System;
 using UnityEngine;
 
 public class SquareGravitationalBody : GravitationalBody
@@ -21,6 +22,6 @@ public class SquareGravitationalBody : GravitationalBody
             direction.x = 0;
         }
 
-        return GetFieldStrength(massiveBody.mass, direction);
+        return GetFieldStrength(Mass, direction);
     }
 }
