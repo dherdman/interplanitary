@@ -20,6 +20,19 @@ public class CameraManager : Singleton<CameraManager>
         }
     }
 
+    Camera _playerCameraComponent;
+    public Camera PlayerCamera
+    {
+        get
+        {
+            if(_playerCameraComponent == null)
+            {
+                _playerCameraComponent = playerCameraInstance.GetComponent<Camera>();
+            }
+            return _playerCameraComponent;
+        }
+    }
+
     public Camera GetNewNamedOverlayCamera (string name)
     {
         Camera newCam = Instantiate(OverlayCamera, transform);

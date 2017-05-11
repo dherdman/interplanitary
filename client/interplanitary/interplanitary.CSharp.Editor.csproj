@@ -123,5 +123,8 @@
     <Compile Include="Assets\Scripts\Editor\DefineSymbolWindow.cs" />
     <Compile Include="Assets\Scripts\Editor\ScenePicker.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\StandardAssets\ThirdPersonCharacter\ThirdPersonCharacterGuidelines.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />
 </Project>
