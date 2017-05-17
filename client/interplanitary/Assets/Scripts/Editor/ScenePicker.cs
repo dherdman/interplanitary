@@ -10,18 +10,24 @@ public class SceneLoader
     [MenuItem(MENU_ROOT + "GameStart")]
     static void LoadGameStart()
     {
-        EditorSceneManager.OpenScene(PATH_ROOT + "GameStart.unity");
+        OpenScene("GameStart.unity");
     }
 
     [MenuItem(MENU_ROOT + "Menu")]
     static void LoadMenu()
     {
-        EditorSceneManager.OpenScene(PATH_ROOT + "MenuScene.unity");
+        OpenScene("MenuScene.unity");
     }
 
     [MenuItem(MENU_ROOT + "Game")]
     static void LoadGame()
     {
-        EditorSceneManager.OpenScene(PATH_ROOT + "Gameplay.unity");
+        OpenScene("Gameplay.unity");
+    }
+
+    static void OpenScene (string fileName)
+    {
+        EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo();
+        EditorSceneManager.OpenScene(PATH_ROOT + fileName);
     }
 }
