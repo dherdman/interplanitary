@@ -87,8 +87,12 @@
     <Compile Include="Assets\Scripts\Constants\Tags.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Base\Gravitation\GravitationalBody.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Base\Gravitation\SquareGravitationalBody.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Base\IInteractable.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Player\Player.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Player\PlayerController.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Ships\Modules\CockpitModule.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Ships\Modules\ShipModule.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Ships\Ship.cs" />
     <Compile Include="Assets\Scripts\Gameplay\TargetTrackingCamera.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Worlds\World.cs" />
     <Compile Include="Assets\Scripts\Singletons\CameraManager.cs" />

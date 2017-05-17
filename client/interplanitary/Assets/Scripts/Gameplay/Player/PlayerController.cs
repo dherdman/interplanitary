@@ -52,13 +52,19 @@ public class PlayerController : GravitationalBody
 
     Animator animator;
     Rigidbody playerRigidBody;
+    Player player;
 
     Plane mouseInteractionPlane;
 
+    List<IInteractable> currentlyInteractableObjects;
+
     protected override void OnAwake()
     {
-        distToGround = GetComponent<Collider>().bounds.extents.y / 4;
-        colliderWidth = GetComponent<Collider>().bounds.extents.x;
+        player = GetComponent<Player>();
+
+        Collider c = GetComponent<Collider>();
+        distToGround = c.bounds.extents.y / 4;
+        colliderWidth = c.bounds.extents.x;
 
         playerRigidBody = GetComponent<Rigidbody>();
         playerRigidBody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
@@ -67,6 +73,36 @@ public class PlayerController : GravitationalBody
         animator.applyRootMotion = false;
 
         mouseInteractionPlane = new Plane(Vector3.up, Vector3.right, Vector3.zero);
+
+        currentlyInteractableObjects = new List<IInteractable>();
+    }
+
+    void OnTriggerEnter (Collider col)
+    {
+        IInteractable interactableObj = col.gameObject.GetComponent<IInteractable>();
+        if (interactableObj != null)
+        {
+            currentlyInteractableObjects.Add(interactableObj); // !!! object priorities?
+        }
+    }
+
+    void OnTriggerExit (Collider col)
+    {
+        IInteractable interactableObj = col.gameObject.GetComponent<IInteractable>();
+
+        if(interactableObj != null)
+        {
+            currentlyInteractableObjects.Remove(interactableObj);
+        }
+    }
+
+    void Update ()
+    {
+        if(currentlyInteractableObjects.Count > 0 && Input.GetButton(InputAxis.PlayerControl.INTERACT))
+        {
+            currentlyInteractableObjects[0].Interact(player);
+            currentlyInteractableObjects.RemoveAt(0);
+        }
     }
 
     bool IsFacingRight
@@ -75,9 +111,6 @@ public class PlayerController : GravitationalBody
         {
             Vector3 t = transform.forward;
             Vector3 cam = ScreenRight;
-
-            //Debug.Log(t + " " + cam);
-            //Debug.Log((Sign(t.x) == Sign(cam.x)) + " " + (Sign(t.y) == Sign(cam.y)));
 
             return core.Math.Sign(t.x) == core.Math.Sign(cam.x) && core.Math.Sign(t.y) == core.Math.Sign(cam.y);
         }
@@ -119,7 +152,7 @@ public class PlayerController : GravitationalBody
     {
         animator.SetBool(ANIM_PARAMS.GROUNDED, IsGrounded);
 
-        float moveAmount = (IsFacingRight ? 1 : -1) * Input.GetAxis(InputAxis.PlayerControl.HORIZONTAL);
+        float moveAmount = Input.GetAxis(InputAxis.PlayerControl.HORIZONTAL);
 
         transform.position = new Vector3(transform.position.x, transform.position.y, 0); // !!! hack b/c current animation does not stay in z plane
 
@@ -136,6 +169,8 @@ public class PlayerController : GravitationalBody
 
     void HandleGroundedMovement(float moveAmount, bool jump)
     {
+        moveAmount = (IsFacingRight ? 1 : -1) * moveAmount;
+
         animator.SetFloat(ANIM_PARAMS.FORWARD_MOVE, moveAmount);
 
         // calculate which leg is behind, so as to leave that leg trailing in the jump animation
@@ -157,13 +192,10 @@ public class PlayerController : GravitationalBody
     void HandleAirborneMovement(float moveAmount)
     {
         // move only perpendicular to gravity 
-
         float perpVelocity = Vector3.Dot(playerRigidBody.velocity, NetGravityPerpendicular);
         float perpMove = moveAmount * airMoveSpeed;
 
-        Debug.Log(perpVelocity + " " + perpMove);
-
-        if(moveAmount != 0 && (moveAmount < 0 ? moveAmount < perpVelocity : moveAmount > perpVelocity))
+        if(perpMove != 0 && (perpMove < 0 ? perpMove < perpVelocity : perpMove > perpVelocity))
         {
             // if move input is greater than current velocity, remove current velocity and add move velocity (add the difference)
             playerRigidBody.velocity = playerRigidBody.velocity + (Vector3)NetGravityPerpendicular * (perpMove - perpVelocity);
@@ -254,4 +286,23 @@ public class PlayerController : GravitationalBody
         }
     }
 
+    /// <summary>
+    /// Performs any necessary cleanup when disabling player control upon entering a vehicle
+    /// </summary>
+    public void DisableSelf ()
+    {
+        // reset animator state
+        animator.SetFloat(ANIM_PARAMS.FORWARD_MOVE, 0);
+        animator.SetFloat(ANIM_PARAMS.JUMP, 0f);
+        animator.SetFloat(ANIM_PARAMS.JUMP_LEG, 0f);
+        animator.SetFloat(ANIM_PARAMS.TURN, 0f);
+
+        animator.SetBool(ANIM_PARAMS.GROUNDED, true);
+
+        // stop all rigid body motion
+        playerRigidBody.velocity = Vector3.zero;
+
+        // disable script
+        this.enabled = false;
+    }
 }
