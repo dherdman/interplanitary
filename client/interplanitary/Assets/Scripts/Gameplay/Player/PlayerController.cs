@@ -123,7 +123,7 @@ public class PlayerController : GravitationalBody
 
         if (!IsGrounded)
         {
-            HandleAirborneMovement(moveAmount);
+            HandleAirborneMovement();
         }
         else
         {
