@@ -40,8 +40,18 @@ public class PlayerController : GravitationalBody
     float distToGround;
     float colliderWidth;
 
+    bool IsGrounded;
+    Vector2 NetGravity;
+    Vector2 NetGravityPerpendicular
+    {
+        get
+        {
+            return new Vector2(-NetGravity.y, NetGravity.x).normalized;
+        }
+    }
+
     Animator animator;
-    Rigidbody massiveBody;
+    Rigidbody playerRigidBody;
 
     Plane mouseInteractionPlane;
 
@@ -50,8 +60,8 @@ public class PlayerController : GravitationalBody
         distToGround = GetComponent<Collider>().bounds.extents.y / 4;
         colliderWidth = GetComponent<Collider>().bounds.extents.x;
 
-        massiveBody = GetComponent<Rigidbody>();
-        massiveBody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
+        playerRigidBody = GetComponent<Rigidbody>();
+        playerRigidBody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
 
         animator = GetComponent<Animator>();
         animator.applyRootMotion = false;
@@ -64,22 +74,22 @@ public class PlayerController : GravitationalBody
         get
         {
             Vector3 t = transform.forward;
-            Vector3 cam = CameraManager.instance.PlayerCamera.transform.right;
+            Vector3 cam = ScreenRight;
 
             //Debug.Log(t + " " + cam);
             //Debug.Log((Sign(t.x) == Sign(cam.x)) + " " + (Sign(t.y) == Sign(cam.y)));
 
-            return Sign(t.x) == Sign(cam.x) && Sign(t.y) == Sign(cam.y);
+            return core.Math.Sign(t.x) == core.Math.Sign(cam.x) && core.Math.Sign(t.y) == core.Math.Sign(cam.y);
         }
     }
-    int Sign(float val, bool allowZero = true)
+    Vector2 ScreenRight
     {
-        return allowZero && FloatUtilities.RoughlyZero(val) ? 0 : val < 0 ? -1 : 1;
+        get
+        {
+            return CameraManager.instance.PlayerCamera.transform.right;
+        }
     }
     
-    Vector2 NetGravity;
-    bool IsGrounded;
-
     void CheckGrounded()
     {
         RaycastHit hit;
@@ -111,29 +121,23 @@ public class PlayerController : GravitationalBody
 
         float moveAmount = (IsFacingRight ? 1 : -1) * Input.GetAxis(InputAxis.PlayerControl.HORIZONTAL);
 
-        if (IsAnimatorState(ANIM_STATE.GROUNDED))
-        {
-            animator.SetFloat(ANIM_PARAMS.FORWARD_MOVE, moveAmount);
-        } else
-        {
-            // !!! TODO if in the air, move animation or just translate?
-        }
-
         transform.position = new Vector3(transform.position.x, transform.position.y, 0); // !!! hack b/c current animation does not stay in z plane
 
         if (!IsGrounded)
         {
-            HandleAirborneMovement();
+            HandleAirborneMovement(moveAmount);
         }
         else
         {
-            HandleGroundedMovement(moveAmount, Input.GetButtonDown(InputAxis.PlayerControl.JUMP));
+            HandleGroundedMovement(moveAmount, Input.GetButton(InputAxis.PlayerControl.JUMP));
         }
         ApplyGravity();
     }
 
     void HandleGroundedMovement(float moveAmount, bool jump)
     {
+        animator.SetFloat(ANIM_PARAMS.FORWARD_MOVE, moveAmount);
+
         // calculate which leg is behind, so as to leave that leg trailing in the jump animation
         // (This code is reliant on the specific run cycle offset in our animations,
         // and assumes one leg passes the other at the normalized clip times of 0.0 and 0.5)
@@ -146,13 +150,26 @@ public class PlayerController : GravitationalBody
 
         if (jump && IsGrounded && IsAnimatorState(ANIM_STATE.GROUNDED)) // ensure a jump is valid
         {
-            massiveBody.AddForce(transform.up * jumpForce);
+            playerRigidBody.AddForce(transform.up * jumpForce);
         }
     }
 
-    void HandleAirborneMovement()
+    void HandleAirborneMovement(float moveAmount)
     {
-        animator.SetFloat(ANIM_PARAMS.JUMP, massiveBody.velocity.y);
+        // move only perpendicular to gravity 
+
+        float perpVelocity = Vector3.Dot(playerRigidBody.velocity, NetGravityPerpendicular);
+        float perpMove = moveAmount * airMoveSpeed;
+
+        Debug.Log(perpVelocity + " " + perpMove);
+
+        if(moveAmount != 0 && (moveAmount < 0 ? moveAmount < perpVelocity : moveAmount > perpVelocity))
+        {
+            // if move input is greater than current velocity, remove current velocity and add move velocity (add the difference)
+            playerRigidBody.velocity = playerRigidBody.velocity + (Vector3)NetGravityPerpendicular * (perpMove - perpVelocity);
+        }
+
+        animator.SetFloat(ANIM_PARAMS.JUMP, Vector3.Dot(playerRigidBody.velocity, NetGravity)); // get speed in the "down" direction
     }
 
     void ApplyGravity()
@@ -171,7 +188,7 @@ public class PlayerController : GravitationalBody
 
         SmoothRotateParallel(NetGravity, false); // use net force to get "up" direction
 
-        massiveBody.AddForce(Vector2.Dot(-transform.up, NetGravity) * -transform.up); // applied force is only ever "down"
+        playerRigidBody.AddForce(NetGravity); 
     }
 
     bool IsAnimatorState(string stateName)
@@ -216,12 +233,11 @@ public class PlayerController : GravitationalBody
             // angle between transform up and the direction of gravity
             float delta = Vector2.Angle(-transform.up, gravity); // absolute degree change
 
-            delta *= Sign(Vector3.Cross(-transform.up, gravity).z, false); // find direction using cross product of Vector3s in the X-Y Plane
+            delta *= core.Math.Sign(Vector3.Cross(-transform.up, gravity).z, false); // find direction using cross product of Vector3s in the X-Y Plane
 
-            if (Sign(transform.right.z) == -1 ^ Sign(transform.up.y) == -1)
+            if (core.Math.Sign(transform.right.z) == -1 ^ core.Math.Sign(transform.up.y) == -1)
             {
                 delta *= -1;
-                Debug.Log(delta);
             }
 
             if (!snap)
