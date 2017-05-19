@@ -9,7 +9,7 @@ public class ShipSeat
     public Player occupant;
     // !!! perhaps this should be an array of roles
     public ShipSeatRole role;
-    public List<ShipModule> controlledModules;
+    public List<ShipModuleController> controlledModules;
 }
 
 /// <summary>
@@ -22,11 +22,16 @@ public enum ShipSeatRole : int
     passenger
 }
 
+public enum ShipState
+{
+    landed,
+    atmostphere,
+    space
+}
+
+[RequireComponent(typeof(ShipController))]
 public class Ship : MonoBehaviour, IInteractable
 {
-    [SerializeField]
-    Vector3 cameraPosition;
-
     [Header("Seating Configuration")]
     [SerializeField]
     bool boardable = true;
@@ -49,6 +54,13 @@ public class Ship : MonoBehaviour, IInteractable
         }
     }
 
+    [SerializeField]
+    public ShipStats Stats;
+
+    public ShipState State { get; private set; } // !!! TODO what controls this?
+
+    ShipController shipController;
+
     int availableSeats;
 
     public bool CanInteract(Player playerInstance)
@@ -67,12 +79,14 @@ public class Ship : MonoBehaviour, IInteractable
 
     void Start()
     {
+        shipController = GetComponent<ShipController>();
+
         if (Seats.Count < 1)
         {
             GameObject moduleHolder = new GameObject();
             moduleHolder.transform.parent = transform;
             moduleHolder.transform.position = Vector3.zero;
-            CockpitModule module = moduleHolder.AddComponent<CockpitModule>();
+            CockpitModuleController module = moduleHolder.AddComponent<CockpitModuleController>();
             module.InitializeModule(this);
 
             Seats = new List<ShipSeat> {
@@ -80,7 +94,7 @@ public class Ship : MonoBehaviour, IInteractable
                 {
                     occupant = null,
                     role = ShipSeatRole.pilot,
-                    controlledModules = new List<ShipModule> { module },
+                    controlledModules = new List<ShipModuleController> { module },
                 }
             };
         }
@@ -102,7 +116,7 @@ public class Ship : MonoBehaviour, IInteractable
                     // more specific version of InitializeSeatModules that will remove CockpitModules as well as nulls
                     for (int j = Seats[i].controlledModules.Count - 1; j >= 0; j--)
                     {
-                        if (Seats[i].controlledModules[j] == null || Seats[i].controlledModules[j].GetType() == typeof(CockpitModule))
+                        if (Seats[i].controlledModules[j] == null || Seats[i].controlledModules[j].GetType() == typeof(CockpitModuleController))
                         {
                             Seats[i].controlledModules.RemoveAt(j);
                         }
@@ -147,16 +161,17 @@ public class Ship : MonoBehaviour, IInteractable
 
         playerSeat.occupant = playerInstance;
 
+        shipController.enabled = true;
         EnableModulesForSeat(playerSeat);
         playerInstance.ToggleControl();
-
-        CameraManager.instance.AssignPlayerCameraToTarget(transform, cameraPosition);
 
         availableSeats--;
     }
 
     void Disembark(Player playerInstance)
     {
+        shipController.enabled = false;
+
         for (int i = 0; i < Seats.Count; i++)
         {
             if (Seats[i].occupant == playerInstance)
@@ -201,7 +216,7 @@ public class Ship : MonoBehaviour, IInteractable
         SetModuleEnabledStaes(seat.controlledModules, false);
     }
 
-    void SetModuleEnabledStaes(List<ShipModule> modules, bool enabledState)
+    void SetModuleEnabledStaes(List<ShipModuleController> modules, bool enabledState)
     {
         for (int i = 0; i < modules.Count; i++)
         {

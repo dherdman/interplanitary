@@ -5,15 +5,10 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField]
-    Vector3 cameraPosition;
-
     PlayerController playerController;
 
     void Start()
     {
-        CameraManager.instance.AssignPlayerCameraToTarget(transform, cameraPosition);
-
         playerController = GetComponent<PlayerController>();
     }
 

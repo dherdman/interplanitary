@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider)), RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Collider)), RequireComponent(typeof(Rigidbody)), RequireComponent(typeof(CameraTarget))]
 public class PlayerController : GravitationalBody
 {
     static class ANIM_STATE
@@ -41,6 +41,8 @@ public class PlayerController : GravitationalBody
     float colliderWidth;
 
     bool IsGrounded;
+    bool jumpButtonPressed;
+    float inputMoveAmount;
     Vector2 NetGravity;
     Vector2 NetGravityPerpendicular
     {
@@ -53,6 +55,19 @@ public class PlayerController : GravitationalBody
     Animator animator;
     Rigidbody playerRigidBody;
     Player player;
+
+    CameraTarget _camTarget;
+    CameraTarget CamTarget
+    {
+        get
+        {
+            if(_camTarget == null)
+            {
+                _camTarget = GetComponent<CameraTarget>();
+            }
+            return _camTarget;
+        }
+    }
 
     Plane mouseInteractionPlane;
 
@@ -75,6 +90,11 @@ public class PlayerController : GravitationalBody
         mouseInteractionPlane = new Plane(Vector3.up, Vector3.right, Vector3.zero);
 
         currentlyInteractableObjects = new List<IInteractable>();
+    }
+
+    void OnEnable()
+    {
+        CameraManager.instance.AssignPlayerCameraToTarget(CamTarget);
     }
 
     void OnTriggerEnter (Collider col)
@@ -103,6 +123,9 @@ public class PlayerController : GravitationalBody
             currentlyInteractableObjects[0].Interact(player);
             currentlyInteractableObjects.RemoveAt(0);
         }
+
+        inputMoveAmount = Input.GetAxis(InputAxis.PlayerControl.HORIZONTAL);
+        jumpButtonPressed = Input.GetButtonDown(InputAxis.PlayerControl.JUMP);
     }
 
     bool IsFacingRight
@@ -152,17 +175,15 @@ public class PlayerController : GravitationalBody
     {
         animator.SetBool(ANIM_PARAMS.GROUNDED, IsGrounded);
 
-        float moveAmount = Input.GetAxis(InputAxis.PlayerControl.HORIZONTAL);
-
         transform.position = new Vector3(transform.position.x, transform.position.y, 0); // !!! hack b/c current animation does not stay in z plane
 
         if (!IsGrounded)
         {
-            HandleAirborneMovement(moveAmount);
+            HandleAirborneMovement(inputMoveAmount);
         }
         else
         {
-            HandleGroundedMovement(moveAmount, Input.GetButton(InputAxis.PlayerControl.JUMP));
+            HandleGroundedMovement(inputMoveAmount, jumpButtonPressed);
         }
         ApplyGravity();
     }

@@ -13,6 +13,12 @@ public static class InputAxis
     {
         public const string HORIZONTAL = "ShipHorizontal";
         public const string VERTICAL = "ShipVertical";
+        public const string ROTATION = "ShipRotate";
+        public const string TAKEOFF_LANDING = "ShipTakeoffLanding";
+    }
+    public static class General
+    {
+        public const string CAMERA_ZOOM = "MouseWheel";
     }
     public static class Debug
     {

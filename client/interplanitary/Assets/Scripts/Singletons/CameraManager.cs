@@ -41,13 +41,13 @@ public class CameraManager : Singleton<CameraManager>
         return newCam;
     }
 
-    public void AssignPlayerCameraToTarget(Transform target, Vector3 relativePosition)
+    public void AssignPlayerCameraToTarget(CameraTarget target, bool smoothTransition = true)
     {
         if(playerCameraInstance == null)
         {
             playerCameraInstance = Instantiate(playerCameraPrefab, transform) as TargetTrackingCamera;
         }
 
-        playerCameraInstance.FollowTarget(target, relativePosition);
+        playerCameraInstance.FollowTarget(target, smoothTransition);
     }
 }

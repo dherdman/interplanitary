@@ -1,9 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public abstract class ShipModule : MonoBehaviour
+public abstract class ShipModuleController : MonoBehaviour
 {
+    void Awake ()
+    {
+        OnAwake();
+    }
+
     void Start ()
     {
         OnStart();
@@ -15,6 +18,7 @@ public abstract class ShipModule : MonoBehaviour
         OnUpdate();
     }
 
+    protected abstract void OnAwake();
     protected abstract void OnStart();
     protected abstract void OnUpdate();
 
