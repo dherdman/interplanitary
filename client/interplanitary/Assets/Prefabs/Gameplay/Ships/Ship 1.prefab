@@ -20,7 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4328600757844956}
   - component: {fileID: 114744117213431384}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cockpit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -37,7 +37,7 @@ GameObject:
   - component: {fileID: 4631897279502972}
   - component: {fileID: 33906299648440202}
   - component: {fileID: 23916640187538986}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cube (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -53,7 +53,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4159568435307954}
   - component: {fileID: 65088880418906310}
-  m_Layer: 0
+  - component: {fileID: 114005105792482046}
+  m_Layer: 8
   m_Name: Hull
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -70,7 +71,7 @@ GameObject:
   - component: {fileID: 4973689181754588}
   - component: {fileID: 33444400111379778}
   - component: {fileID: 23775349030758260}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -87,7 +88,7 @@ GameObject:
   - component: {fileID: 4605670540453358}
   - component: {fileID: 33665644229724670}
   - component: {fileID: 23781707434047112}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cube (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -106,7 +107,8 @@ GameObject:
   - component: {fileID: 114302621183618902}
   - component: {fileID: 114001318378232792}
   - component: {fileID: 114668853089958394}
-  m_Layer: 0
+  - component: {fileID: 54263505170895056}
+  m_Layer: 8
   m_Name: Ship 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -123,7 +125,7 @@ GameObject:
   - component: {fileID: 4487080976927668}
   - component: {fileID: 33747210574161694}
   - component: {fileID: 23026555245228910}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cube (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -383,6 +385,21 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1394538042078212}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!54 &54263505170895056
+Rigidbody:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1904646799905336}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 126
+  m_CollisionDetection: 0
 --- !u!65 &65030703208289188
 BoxCollider:
   m_ObjectHideFlags: 1
@@ -418,6 +435,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9cab1f77411a3440bfcf27087679447, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114005105792482046
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1450988228164924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10a50301401462b40ba535407575e44a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114302621183618902
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -450,6 +478,7 @@ MonoBehaviour:
   Stats:
     MaxHealth: 0
     Acceleration: {x: 0, y: 0}
+  hull: {fileID: 0}
 --- !u!114 &114668853089958394
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -6,6 +6,7 @@ public static class Layers
     public const string Ships = "Ships";
     public const string Characters = "Characters";
     public const string Worlds = "Worlds";
+    public const string Atmosphere = "Atmosphere";
 
     public static class ID
     {
@@ -28,6 +29,13 @@ public static class Layers
             get
             {
                 return LayerMask.NameToLayer(Layers.Worlds);
+            }
+        }
+        public static int Atmosphere
+        {
+            get
+            {
+                return LayerMask.NameToLayer(Layers.Atmosphere);
             }
         }
     }

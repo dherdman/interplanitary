@@ -1,4 +1,6 @@
 ﻿
+using UnityEngine;
+
 namespace core
 {
     public static class Math
@@ -21,6 +23,11 @@ namespace core
         public static float AbsoluteMax(float a, float b)
         {
             return Abs(a) > Abs(b) ? a : b;
+        }
+
+        public static float SignedAngle(Vector3 from, Vector3 to)
+        {
+            return Vector2.Angle(from, to) * core.Math.Sign(Vector3.Cross(from, to).z, false);
         }
     }
 }

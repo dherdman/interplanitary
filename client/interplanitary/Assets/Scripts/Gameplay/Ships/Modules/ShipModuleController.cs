@@ -18,9 +18,15 @@ public abstract class ShipModuleController : MonoBehaviour
         OnUpdate();
     }
 
+    void FixedUpdate ()
+    {
+        OnFixedUpdate();
+    }
+
     protected abstract void OnAwake();
     protected abstract void OnStart();
     protected abstract void OnUpdate();
+    protected abstract void OnFixedUpdate();
 
     public abstract void InitializeModule(Ship parentShip);
 }

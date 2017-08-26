@@ -8,6 +8,7 @@ public static class InputAxis
         public const string HORIZONTAL = "PlayerHorizontal";
         public const string JUMP = "PlayerJump";
         public const string INTERACT = "PlayerInteract";
+        public const string FIRE = "PlayerFire";
     }
     public static class ShipControl
     {

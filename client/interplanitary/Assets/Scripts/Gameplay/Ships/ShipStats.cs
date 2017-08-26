@@ -6,5 +6,6 @@ using core;
 public class ShipStats
 {
     public int MaxHealth;
-    public Vector2 Acceleration;
+    public Vector2 PlanitaryAcceleration;
+    public Vector2 SpaceAcceleration;
 }

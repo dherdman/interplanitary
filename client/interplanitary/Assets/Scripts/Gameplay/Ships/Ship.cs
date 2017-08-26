@@ -25,8 +25,16 @@ public enum ShipSeatRole : int
 public enum ShipState
 {
     landed,
-    atmostphere,
-    space
+    landing,
+    takeoff,
+    planitary_flight,
+    space_flight
+}
+
+public enum ShipWeaponsState
+{
+    hot,
+    cold
 }
 
 [RequireComponent(typeof(ShipController))]
@@ -57,11 +65,35 @@ public class Ship : MonoBehaviour, IInteractable
     [SerializeField]
     public ShipStats Stats;
 
-    public ShipState State { get; private set; } // !!! TODO what controls this?
+    [SerializeField]
+    ShipHull hull;
+
+    public ShipState State { get; private set; }
+
+    public bool IsFlying
+    {
+        get
+        {
+            return !IsLanded;
+        }
+    }
+    public bool IsLanded
+    {
+        get; private set;
+    }
 
     ShipController shipController;
 
     int availableSeats;
+
+    int _numEnteredAtmospheres = 0;
+    bool IsInAtmosphere
+    {
+        get
+        {
+            return _numEnteredAtmospheres > 0;
+        }
+    }
 
     public bool CanInteract(Player playerInstance)
     {
@@ -75,6 +107,56 @@ public class Ship : MonoBehaviour, IInteractable
         {
             Embark(playerInstance);
         }
+    }
+
+    // Because the ship uses an interaction trigger, it cannot properly detect collisions with triggers, so let the hull manage that and subscribe to events
+    void OnAtmosphereEntered()
+    {
+        _numEnteredAtmospheres++;
+
+        if (State == ShipState.space_flight)
+        {
+            State = ShipState.planitary_flight;
+        }
+    }
+
+    // Because the ship uses an interaction trigger, it cannot properly detect collisions with triggers, so let the hull manage that and subscribe to events
+    void OnAtmosphereExited()
+    {
+        _numEnteredAtmospheres--;
+
+        if (State == ShipState.planitary_flight)
+        {
+            State = ShipState.space_flight;
+        }
+    }
+
+    void OnWorldHit()
+    {
+        IsLanded = true;
+    }
+
+    void OnWorldExit()
+    {
+        IsLanded = false;
+    }
+
+    void Awake()
+    {
+        if (hull == null)
+        {
+            Debug.LogWarning("[Ship] Ship's hull was not assigned to serialized field, using Object.Find to get it");
+
+            hull = gameObject.GetComponentInChildren<ShipHull>();
+
+            if (hull == null)
+            {
+                Debug.LogError("[Ship] Ship hull not found after searching!");
+            }
+        }
+
+        hull.OnAtmosphereEntered += OnAtmosphereEntered;
+        hull.OnAtmosphereExited += OnAtmosphereExited;
     }
 
     void Start()
@@ -130,7 +212,6 @@ public class Ship : MonoBehaviour, IInteractable
                 {
                     InitializeSeatModules(Seats[i]);
                 }
-
             }
         }
 
@@ -184,6 +265,26 @@ public class Ship : MonoBehaviour, IInteractable
         }
 
         availableSeats++;
+    }
+
+    public void OnTakeoffInitiated()
+    {
+        State = ShipState.takeoff;
+    }
+
+    public void OnTakeoffFinished()
+    {
+        State = _numEnteredAtmospheres > 0 ? ShipState.planitary_flight : ShipState.space_flight;
+    }
+
+    public void OnLandingInitiated()
+    {
+        State = ShipState.landing;
+    }
+
+    public void OnLandingFinished()
+    {
+        State = ShipState.landed;
     }
 
     #region Toggling Modules

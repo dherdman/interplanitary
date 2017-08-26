@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class GravitationalBody : MonoBehaviour
+public class GravitationalBody : MonoBehaviour
 {
     const float G = 1; // gravitational constant in standard form
 
     [SerializeField]
-    protected Vector2 centerOfMass;
+    protected Vector2 localCenterOfMass;
     public Vector2 CenterOfMass
     {
         get
         {
-            return (Vector2)transform.position + centerOfMass;
+            return (Vector2)transform.position + localCenterOfMass;
         }
     }
 
@@ -32,7 +32,29 @@ public abstract class GravitationalBody : MonoBehaviour
         OnAwake();
     }
 
-    protected abstract void OnAwake();
+    void OnEnable()
+    {
+        if (GravityManager.instance != null)
+        {
+            GravityManager.instance.RegisterBody(this);
+        }
+
+        OnEnabledCallback();
+    }
+
+    void OnDisable()
+    {
+        if(GravityManager.instance != null)
+        {
+            GravityManager.instance.DeregisterBody(this);
+        }
+
+        OnDisabledCallback();
+    }
+
+    protected virtual void OnAwake() { }
+    protected virtual void OnEnabledCallback() { }
+    protected virtual void OnDisabledCallback() { }
 
     public virtual Vector2 FieldStrengthAtPoint(Vector2 point)
     {

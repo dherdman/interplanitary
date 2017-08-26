@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -61,7 +62,7 @@ public class PlayerController : GravitationalBody
     {
         get
         {
-            if(_camTarget == null)
+            if (_camTarget == null)
             {
                 _camTarget = GetComponent<CameraTarget>();
             }
@@ -92,12 +93,13 @@ public class PlayerController : GravitationalBody
         currentlyInteractableObjects = new List<IInteractable>();
     }
 
-    void OnEnable()
+    protected override void OnEnabledCallback()
     {
         CameraManager.instance.AssignPlayerCameraToTarget(CamTarget);
     }
+    protected override void OnDisabledCallback() { }
 
-    void OnTriggerEnter (Collider col)
+    void OnTriggerEnter(Collider col)
     {
         IInteractable interactableObj = col.gameObject.GetComponent<IInteractable>();
         if (interactableObj != null)
@@ -106,19 +108,19 @@ public class PlayerController : GravitationalBody
         }
     }
 
-    void OnTriggerExit (Collider col)
+    void OnTriggerExit(Collider col)
     {
         IInteractable interactableObj = col.gameObject.GetComponent<IInteractable>();
 
-        if(interactableObj != null)
+        if (interactableObj != null)
         {
             currentlyInteractableObjects.Remove(interactableObj);
         }
     }
 
-    void Update ()
+    void Update()
     {
-        if(currentlyInteractableObjects.Count > 0 && Input.GetButton(InputAxis.PlayerControl.INTERACT))
+        if (currentlyInteractableObjects.Count > 0 && Input.GetButton(InputAxis.PlayerControl.INTERACT))
         {
             currentlyInteractableObjects[0].Interact(player);
             currentlyInteractableObjects.RemoveAt(0);
@@ -126,6 +128,11 @@ public class PlayerController : GravitationalBody
 
         inputMoveAmount = Input.GetAxis(InputAxis.PlayerControl.HORIZONTAL);
         jumpButtonPressed = Input.GetButtonDown(InputAxis.PlayerControl.JUMP);
+
+        if(Input.GetButton(InputAxis.PlayerControl.FIRE))
+        {
+            player.FireWeapon();
+        }
     }
 
     bool IsFacingRight
@@ -145,7 +152,7 @@ public class PlayerController : GravitationalBody
             return CameraManager.instance.PlayerCamera.transform.right;
         }
     }
-    
+
     void CheckGrounded()
     {
         RaycastHit hit;
@@ -216,7 +223,7 @@ public class PlayerController : GravitationalBody
         float perpVelocity = Vector3.Dot(playerRigidBody.velocity, NetGravityPerpendicular);
         float perpMove = moveAmount * airMoveSpeed;
 
-        if(perpMove != 0 && (perpMove < 0 ? perpMove < perpVelocity : perpMove > perpVelocity))
+        if (perpMove != 0 && (perpMove < 0 ? perpMove < perpVelocity : perpMove > perpVelocity))
         {
             // if move input is greater than current velocity, remove current velocity and add move velocity (add the difference)
             playerRigidBody.velocity = playerRigidBody.velocity + (Vector3)NetGravityPerpendicular * (perpMove - perpVelocity);
@@ -227,21 +234,11 @@ public class PlayerController : GravitationalBody
 
     void ApplyGravity()
     {
-        GravitationalBody[] bodies = FindObjectsOfType<GravitationalBody>();
-
-        NetGravity = new Vector3();
-        for (int i = 0; i < bodies.Length; i++)
-        {
-            if (bodies[i] != this && bodies[i].isActiveAndEnabled)
-            {
-                Vector2 force = bodies[i].GravitationalPull(this);
-                NetGravity += force;
-            }
-        }
+        NetGravity = GravityManager.instance.NetGravityAtPoint(CenterOfMass, Mass, new List<int> { Layers.ID.Worlds });
 
         SmoothRotateParallel(NetGravity, false); // use net force to get "up" direction
 
-        playerRigidBody.AddForce(NetGravity); 
+        playerRigidBody.AddForce(NetGravity);
     }
 
     bool IsAnimatorState(string stateName)
@@ -257,6 +254,9 @@ public class PlayerController : GravitationalBody
         if (mouseInteractionPlane.Raycast(ray, out distance))
         {
             Vector3 hitPoint = ray.GetPoint(distance); // !!! store whole vector b/c y will be used for aiming later
+
+            // !!!!! TODO(also in player) should be animation based, this is temp
+            player.AimAt(hitPoint);
 
             // !!! TODO animate turn ?
             //float turn;
@@ -284,9 +284,11 @@ public class PlayerController : GravitationalBody
         if (gravity.magnitude > 0)
         {
             // angle between transform up and the direction of gravity
-            float delta = Vector2.Angle(-transform.up, gravity); // absolute degree change
+            //float delta = Vector2.Angle(-transform.up, gravity); // absolute degree change
 
-            delta *= core.Math.Sign(Vector3.Cross(-transform.up, gravity).z, false); // find direction using cross product of Vector3s in the X-Y Plane
+            //delta *= core.Math.Sign(Vector3.Cross(-transform.up, gravity).z, false); // find direction using cross product of Vector3s in the X-Y Plane
+
+            float delta = core.Math.SignedAngle(-transform.up, gravity);
 
             if (core.Math.Sign(transform.right.z) == -1 ^ core.Math.Sign(transform.up.y) == -1)
             {
@@ -310,7 +312,7 @@ public class PlayerController : GravitationalBody
     /// <summary>
     /// Performs any necessary cleanup when disabling player control upon entering a vehicle
     /// </summary>
-    public void DisableSelf ()
+    public void DisableSelf()
     {
         // reset animator state
         animator.SetFloat(ANIM_PARAMS.FORWARD_MOVE, 0);

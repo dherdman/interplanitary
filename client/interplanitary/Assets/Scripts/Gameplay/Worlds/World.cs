@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class World : SquareGravitationalBody
+public class World : MonoBehaviour
 {
-    protected override void OnAwake()
+    void Awake()
     {
 
     }
