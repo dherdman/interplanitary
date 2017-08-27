@@ -38,6 +38,11 @@ public class Gun : Weapon
         SetShotInterval();
 
         nextShotTime = 0f;
+
+        if(Muzzle == null)
+        {
+            Muzzle = transform;
+        }
     }
 
     public override void Reload()

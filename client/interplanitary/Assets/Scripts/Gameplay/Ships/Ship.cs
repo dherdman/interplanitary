@@ -6,7 +6,7 @@ using UnityEngine;
 [Serializable]
 public class ShipSeat
 {
-    public Player occupant;
+    public Character occupant;
     // !!! perhaps this should be an array of roles
     public ShipSeatRole role;
     public List<ShipModuleController> controlledModules;
@@ -95,17 +95,17 @@ public class Ship : MonoBehaviour, IInteractable
         }
     }
 
-    public bool CanInteract(Player playerInstance)
+    public bool CanInteract(Character character)
     {
         // !!! could add in some level caps or something to this for more variety & player progression
         return boardable && availableSeats > 0;
     }
 
-    public void Interact(Player playerInstance)
+    public void Interact(Character character)
     {
-        if (CanInteract(playerInstance))
+        if (CanInteract(character))
         {
-            Embark(playerInstance);
+            Embark(character);
         }
     }
 
@@ -236,29 +236,29 @@ public class Ship : MonoBehaviour, IInteractable
     }
 
     // !!! TODO different handling for controlled players vs uncontrolled
-    void Embark(Player playerInstance)
+    void Embark(Character character)
     {
         ShipSeat playerSeat = HighestPriorityAvailableSeat;
 
-        playerSeat.occupant = playerInstance;
+        playerSeat.occupant = character;
 
         shipController.enabled = true;
         EnableModulesForSeat(playerSeat);
-        playerInstance.ToggleControl();
+        character.ToggleControl();
 
         availableSeats--;
     }
 
-    void Disembark(Player playerInstance)
+    void Disembark(Character character)
     {
         shipController.enabled = false;
 
         for (int i = 0; i < Seats.Count; i++)
         {
-            if (Seats[i].occupant == playerInstance)
+            if (Seats[i].occupant == character)
             {
                 Seats[i].occupant = null;
-                playerInstance.ToggleControl();
+                character.ToggleControl();
 
                 DisableModulesForSeat(i);
             }

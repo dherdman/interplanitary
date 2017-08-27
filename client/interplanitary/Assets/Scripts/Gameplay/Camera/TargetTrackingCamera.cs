@@ -59,7 +59,7 @@ public class TargetTrackingCamera : MonoBehaviour
 
     void Update()
     {
-        cameraZoomPosition = Mathf.Clamp(cameraZoomPosition + Input.GetAxisRaw(InputAxis.General.CAMERA_ZOOM), 0f, 1f);
+        //cameraZoomPosition = Mathf.Clamp(cameraZoomPosition + Input.GetAxisRaw(InputAxis.General.CAMERA_ZOOM), 0f, 1f); // !!! TODO rework to not use mouse wheel, used for items instead
 
         if (target != null)
         {

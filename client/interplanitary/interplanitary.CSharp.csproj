@@ -90,7 +90,8 @@
     <Compile Include="Assets\Scripts\Gameplay\Base\IInteractable.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Camera\CameraTarget.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Camera\TargetTrackingCamera.cs" />
-    <Compile Include="Assets\Scripts\Gameplay\Characters\CharacterController.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Characters\Character.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Characters\GenericCharacterController.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Characters\Inventory.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Characters\Player.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Characters\PlayerController.cs" />

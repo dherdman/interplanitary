@@ -51,9 +51,9 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4392147115386516}
-  - component: {fileID: 114126886203221104}
+  - component: {fileID: 65183100995365700}
   m_Layer: 0
-  m_Name: BasicGun
+  m_Name: --old_SMG
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -183,7 +183,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1233796824041516}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0}
+  m_LocalPosition: {x: 0, y: 0, z: 3.48}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4172853909007048}
@@ -308,24 +308,15 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1877118696571384}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &114126886203221104
-MonoBehaviour:
+--- !u!65 &65183100995365700
+BoxCollider:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1233796824041516}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ebac832625d24f41a60f1ffbf3a5c65, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Damage: 10
-  Range: 100
-  MuzzleVelocity: 10
-  RateOfFire: 300
-  MagSize: 30
-  AmmoPerShot: 1
-  ammoType: 0
-  BulletPrefab: {fileID: 114553476921615570, guid: f117f42098502b04da8c2e1efb29e595,
-    type: 2}
-  Muzzle: {fileID: 4172853909007048}
+  serializedVersion: 2
+  m_Size: {x: 1, y: 2, z: 2}
+  m_Center: {x: 0, y: 0, z: 0}

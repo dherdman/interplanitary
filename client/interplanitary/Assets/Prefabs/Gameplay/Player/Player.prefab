@@ -1122,6 +1122,7 @@ GameObject:
   - component: {fileID: 114988142544375370}
   - component: {fileID: 114602509455905416}
   - component: {fileID: 114687314895355002}
+  - component: {fileID: 114807782573839758}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -2542,6 +2543,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   closeRelativePosition: {x: 0, y: 0, z: 10}
   farRelativePosition: {x: 0, y: 0, z: 20}
+--- !u!114 &114807782573839758
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1886478927793314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3500258846492b4ab03a1976ba588a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  InventorySlots: 5
 --- !u!114 &114988142544375370
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2555,10 +2568,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   localCenterOfMass: {x: 0, y: 0}
   mass: 10
+  maxDegreeRotationPerFixedUpdate: 5
   runCycleLegOffset: 0.2
   airMoveSpeed: 5
   jumpForce: 750
-  maxDegreeRotationPerFixedUpdate: 5
 --- !u!136 &136646106245767986
 CapsuleCollider:
   m_ObjectHideFlags: 1

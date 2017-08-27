@@ -9,6 +9,7 @@ public static class InputAxis
         public const string JUMP = "PlayerJump";
         public const string INTERACT = "PlayerInteract";
         public const string FIRE = "PlayerFire";
+        public const string EQUIPPED_SWAP = "MouseWheel";
     }
     public static class ShipControl
     {

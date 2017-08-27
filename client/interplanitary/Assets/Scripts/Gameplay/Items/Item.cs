@@ -10,15 +10,66 @@ public enum ItemTypes
     consumable
 }
 
+[Serializable]
 public class Item : MonoBehaviour, IInteractable
 {
-    public bool CanInteract(Player playerInstance)
+    [SerializeField]
+    GameObject _itemModel;
+    public GameObject ItemModel
     {
-        throw new NotImplementedException();
+        get
+        {
+            return _itemModel;
+        }
+    }
+    GameObject itemInstance;
+
+
+    bool disabled;
+    [SerializeField]
+    ItemTypes _itemType;
+    public ItemTypes ItemType
+    {
+        get
+        {
+            return _itemType;
+        }
     }
 
-    public void Interact(Player playerInstance)
+    void OnEnable()
     {
-        playerInstance.PickupItem(this);
+        itemInstance = Instantiate(ItemModel, transform);
+        disabled = false;
+    }
+
+    public bool CanInteract(Character character)
+    {
+        return character.HasFreeSlotInInventory;
+    }
+
+    public void Interact(Character character)
+    {
+        if(!disabled && character.PickupItem(this))
+        {
+            disabled = true;
+            DestroySelf();
+        }
+    }
+
+    public void DestroySelf(bool fullDestroy = false)
+    {
+        if(fullDestroy)
+        {
+            Destroy(this);
+        }
+        else
+        {
+            Destroy(itemInstance);
+        }
+    }
+
+    public virtual void UsePrimary()
+    {
+
     }
 }

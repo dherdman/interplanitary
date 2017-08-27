@@ -3,9 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider)), RequireComponent(typeof(Rigidbody)), RequireComponent(typeof(CameraTarget))]
-public class PlayerController : GravitationalBody
+public class PlayerController : GenericCharacterController
 {
+    // !!! TODO temp until animated?
+    float nextWeaponSwapTime = 0f;
+    float weaponSwapCooldown = 1f;
+
     static class ANIM_STATE
     {
         public const string GROUNDED = "Grounded";
@@ -34,28 +37,10 @@ public class PlayerController : GravitationalBody
 
     const float k_Half = 0.5f;
 
-    [Header("Gravity Configuration")]
-    [SerializeField]
-    float maxDegreeRotationPerFixedUpdate;
-
-    float distToGround;
-    float colliderWidth;
-
-    bool IsGrounded;
     bool jumpButtonPressed;
     float inputMoveAmount;
-    Vector2 NetGravity;
-    Vector2 NetGravityPerpendicular
-    {
-        get
-        {
-            return new Vector2(-NetGravity.y, NetGravity.x).normalized;
-        }
-    }
 
     Animator animator;
-    Rigidbody playerRigidBody;
-    Player player;
 
     CameraTarget _camTarget;
     CameraTarget CamTarget
@@ -76,14 +61,7 @@ public class PlayerController : GravitationalBody
 
     protected override void OnAwake()
     {
-        player = GetComponent<Player>();
-
-        Collider c = GetComponent<Collider>();
-        distToGround = c.bounds.extents.y / 4;
-        colliderWidth = c.bounds.extents.x;
-
-        playerRigidBody = GetComponent<Rigidbody>();
-        playerRigidBody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
+        base.OnAwake();
 
         animator = GetComponent<Animator>();
         animator.applyRootMotion = false;
@@ -104,7 +82,7 @@ public class PlayerController : GravitationalBody
         IInteractable interactableObj = col.gameObject.GetComponent<IInteractable>();
         if (interactableObj != null)
         {
-            currentlyInteractableObjects.Add(interactableObj); // !!! object priorities?
+            currentlyInteractableObjects.Add(interactableObj); // !!! TODO add system for prioritizing or rotating interactions
         }
     }
 
@@ -122,16 +100,25 @@ public class PlayerController : GravitationalBody
     {
         if (currentlyInteractableObjects.Count > 0 && Input.GetButton(InputAxis.PlayerControl.INTERACT))
         {
-            currentlyInteractableObjects[0].Interact(player);
+            currentlyInteractableObjects[0].Interact(CharacterInstance);
             currentlyInteractableObjects.RemoveAt(0);
         }
 
         inputMoveAmount = Input.GetAxis(InputAxis.PlayerControl.HORIZONTAL);
         jumpButtonPressed = Input.GetButtonDown(InputAxis.PlayerControl.JUMP);
 
-        if(Input.GetButton(InputAxis.PlayerControl.FIRE))
+        float equippedSwap = Input.GetAxis(InputAxis.PlayerControl.EQUIPPED_SWAP);
+
+        if (equippedSwap != 0 && Time.time > nextWeaponSwapTime)
         {
-            player.FireWeapon();
+            nextWeaponSwapTime = Time.time + weaponSwapCooldown;
+            // !!! TODO swap weapon
+            CharacterInstance.EquipFromInventory();
+        }
+        // else if so that firing cannot occur on the same frame as swapping weapons
+        else if(Input.GetButton(InputAxis.PlayerControl.FIRE))
+        {
+            CharacterInstance.UsePrimary();
         }
     }
 
@@ -153,32 +140,27 @@ public class PlayerController : GravitationalBody
         }
     }
 
-    void CheckGrounded()
+    void ProcessGrounded()
     {
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position + transform.up * distToGround + transform.forward * colliderWidth, -transform.up, out hit, distToGround * 2) ||
-           Physics.Raycast(transform.position + transform.up * distToGround - transform.forward * colliderWidth, -transform.up, out hit, distToGround * 2))
+        if(IsGrounded)
         {
-            IsGrounded = true;
             animator.applyRootMotion = true;
             animator.SetFloat(ANIM_PARAMS.JUMP, 0); // kill jump on landing
             // TODO play some landing animations
         }
         else
         {
-            IsGrounded = false;
             animator.applyRootMotion = false;
         }
     }
 
-    void FixedUpdate()
+    protected override void OnFixedUpdate()
     {
-        CheckGrounded();
+        ProcessGrounded();
         LookAtMouse();
-        MoveCharacter();
     }
 
-    void MoveCharacter()
+    protected override void MoveCharacter()
     {
         animator.SetBool(ANIM_PARAMS.GROUNDED, IsGrounded);
 
@@ -213,32 +195,23 @@ public class PlayerController : GravitationalBody
 
         if (jump && IsGrounded && IsAnimatorState(ANIM_STATE.GROUNDED)) // ensure a jump is valid
         {
-            playerRigidBody.AddForce(transform.up * jumpForce);
+            ownRigidBody.AddForce(transform.up * jumpForce);
         }
     }
 
     void HandleAirborneMovement(float moveAmount)
     {
         // move only perpendicular to gravity 
-        float perpVelocity = Vector3.Dot(playerRigidBody.velocity, NetGravityPerpendicular);
+        float perpVelocity = Vector3.Dot(ownRigidBody.velocity, NetGravityPerpendicular);
         float perpMove = moveAmount * airMoveSpeed;
 
         if (perpMove != 0 && (perpMove < 0 ? perpMove < perpVelocity : perpMove > perpVelocity))
         {
             // if move input is greater than current velocity, remove current velocity and add move velocity (add the difference)
-            playerRigidBody.velocity = playerRigidBody.velocity + (Vector3)NetGravityPerpendicular * (perpMove - perpVelocity);
+            ownRigidBody.velocity = ownRigidBody.velocity + (Vector3)NetGravityPerpendicular * (perpMove - perpVelocity);
         }
 
-        animator.SetFloat(ANIM_PARAMS.JUMP, Vector3.Dot(playerRigidBody.velocity, NetGravity)); // get speed in the "down" direction
-    }
-
-    void ApplyGravity()
-    {
-        NetGravity = GravityManager.instance.NetGravityAtPoint(CenterOfMass, Mass, new List<int> { Layers.ID.Worlds });
-
-        SmoothRotateParallel(NetGravity, false); // use net force to get "up" direction
-
-        playerRigidBody.AddForce(NetGravity);
+        animator.SetFloat(ANIM_PARAMS.JUMP, Vector3.Dot(ownRigidBody.velocity, NetGravity)); // get speed in the "down" direction
     }
 
     bool IsAnimatorState(string stateName)
@@ -256,7 +229,7 @@ public class PlayerController : GravitationalBody
             Vector3 hitPoint = ray.GetPoint(distance); // !!! store whole vector b/c y will be used for aiming later
 
             // !!!!! TODO(also in player) should be animation based, this is temp
-            player.AimAt(hitPoint);
+            CharacterInstance.AimAt(hitPoint);
 
             // !!! TODO animate turn ?
             //float turn;
@@ -271,48 +244,12 @@ public class PlayerController : GravitationalBody
             }
 
         }
-
-        // == old method, has issues when transform.forward is down/up (x component ~= 0)
-        //if (transform.forward.x * (Input.mousePosition.x / Screen.width < 0.5f ? -1 : 1) < 0) // if transform.forward is not the same direction as the mouse, rotate 180
-        //{
-        //    transform.RotateAround(transform.position, transform.up, 180);
-        //}
-    }
-
-    void SmoothRotateParallel(Vector2 gravity, bool snap)
-    {
-        if (gravity.magnitude > 0)
-        {
-            // angle between transform up and the direction of gravity
-            //float delta = Vector2.Angle(-transform.up, gravity); // absolute degree change
-
-            //delta *= core.Math.Sign(Vector3.Cross(-transform.up, gravity).z, false); // find direction using cross product of Vector3s in the X-Y Plane
-
-            float delta = core.Math.SignedAngle(-transform.up, gravity);
-
-            if (core.Math.Sign(transform.right.z) == -1 ^ core.Math.Sign(transform.up.y) == -1)
-            {
-                delta *= -1;
-            }
-
-            if (!snap)
-            {
-                if (maxDegreeRotationPerFixedUpdate > 0 && Mathf.Abs(delta) > maxDegreeRotationPerFixedUpdate)
-                {
-                    delta = Mathf.Clamp(delta, -maxDegreeRotationPerFixedUpdate, maxDegreeRotationPerFixedUpdate);
-                }
-            }
-
-            Vector3 rotation = transform.rotation.eulerAngles + new Vector3(delta, 0, 0); // !!! x and z will swap once a custom model is in place
-
-            transform.rotation = Quaternion.Euler(rotation);
-        }
     }
 
     /// <summary>
     /// Performs any necessary cleanup when disabling player control upon entering a vehicle
     /// </summary>
-    public void DisableSelf()
+    public override void DisableSelf()
     {
         // reset animator state
         animator.SetFloat(ANIM_PARAMS.FORWARD_MOVE, 0);
@@ -322,10 +259,6 @@ public class PlayerController : GravitationalBody
 
         animator.SetBool(ANIM_PARAMS.GROUNDED, true);
 
-        // stop all rigid body motion
-        playerRigidBody.velocity = Vector3.zero;
-
-        // disable script
-        this.enabled = false;
+        base.DisableSelf();
     }
 }

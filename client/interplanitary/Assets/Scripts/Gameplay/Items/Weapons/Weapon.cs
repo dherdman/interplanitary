@@ -13,4 +13,9 @@ public abstract class Weapon : Item
     {
         // Does not apply for Melee weapons
     }
+
+    public override void UsePrimary()
+    {
+        this.Fire();
+    }
 }
