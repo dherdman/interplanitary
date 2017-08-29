@@ -24,8 +24,8 @@ public class Gun : Weapon
     [Space]
     [SerializeField]
     Projectile BulletPrefab;
-    [SerializeField]
-    protected Transform Muzzle;
+
+    GunModel OwnGunModelInstance;
 
     protected int NumBulletsLoaded;
     float nextShotTime;
@@ -39,9 +39,13 @@ public class Gun : Weapon
 
         nextShotTime = 0f;
 
-        if(Muzzle == null)
+        if(ItemModelInstance.GetType() != typeof(GunModel))
         {
-            Muzzle = transform;
+            Debug.LogError("[Gun] Gun's model is not of type GunModel");
+        }
+        else
+        {
+            OwnGunModelInstance = (GunModel)ItemModelInstance;
         }
     }
 
@@ -78,7 +82,7 @@ public class Gun : Weapon
 #endif
         nextShotTime = Time.time + minShotDelay;
 
-        Projectile bullet = Instantiate(BulletPrefab, Muzzle.position, Quaternion.Euler(Muzzle.rotation.eulerAngles.x, Muzzle.rotation.eulerAngles.y, 0f), ProjectileContainer.instance.transform) as Projectile;
+        Projectile bullet = Instantiate(BulletPrefab, OwnGunModelInstance.Muzzle.position, Quaternion.Euler(OwnGunModelInstance.Muzzle.rotation.eulerAngles.x, OwnGunModelInstance.Muzzle.rotation.eulerAngles.y, 0f), ProjectileContainer.instance.transform) as Projectile;
         bullet.Init(Damage, MuzzleVelocity, Range);
 
         NumBulletsLoaded -= AmmoPerShot;

@@ -104,6 +104,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4036256517676464}
   - component: {fileID: 65742540219469038}
+  - component: {fileID: 114652492601594154}
   m_Layer: 0
   m_Name: Rifle Model
   m_TagString: Untagged
@@ -608,3 +609,15 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 2, z: 2}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &114652492601594154
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1747791370807854}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcca2d83c405a424b9a530c316d97aac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _muzzle: {fileID: 4708248922662422}

@@ -14,15 +14,15 @@ public enum ItemTypes
 public class Item : MonoBehaviour, IInteractable
 {
     [SerializeField]
-    GameObject _itemModel;
-    public GameObject ItemModel
+    ItemModel _itemModel;
+    public ItemModel ItemModelInstance
     {
         get
         {
-            return _itemModel;
+            return itemInstance;
         }
     }
-    GameObject itemInstance;
+    ItemModel itemInstance;
 
 
     bool disabled;
@@ -38,8 +38,15 @@ public class Item : MonoBehaviour, IInteractable
 
     void OnEnable()
     {
-        itemInstance = Instantiate(ItemModel, transform);
+        itemInstance = Instantiate(_itemModel.gameObject, transform).GetComponent<ItemModel>();
         disabled = false;
+
+        OnEnableEnd();
+    }
+
+    protected virtual void OnEnableEnd()
+    {
+
     }
 
     public bool CanInteract(Character character)
@@ -64,7 +71,7 @@ public class Item : MonoBehaviour, IInteractable
         }
         else
         {
-            Destroy(itemInstance);
+            Destroy(itemInstance.gameObject);
         }
     }
 

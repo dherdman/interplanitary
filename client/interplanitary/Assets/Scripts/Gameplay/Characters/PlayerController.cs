@@ -7,7 +7,7 @@ public class PlayerController : GenericCharacterController
 {
     // !!! TODO temp until animated?
     float nextWeaponSwapTime = 0f;
-    float weaponSwapCooldown = 1f;
+    float weaponSwapCooldown = 0.5f;
 
     static class ANIM_STATE
     {

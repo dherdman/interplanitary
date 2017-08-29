@@ -98,6 +98,8 @@
     <Compile Include="Assets\Scripts\Gameplay\Items\Item.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Items\Weapons\AmmoType.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Items\Weapons\Gun.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Items\Weapons\Models\GunModel.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Items\Weapons\Models\ItemModel.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Items\Weapons\Projectile.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Items\Weapons\Weapon.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Ships\Modules\CockpitModuleController.cs" />
