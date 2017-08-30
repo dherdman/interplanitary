@@ -3,19 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SettingsScreen : UIScreen
+public class GameHudScreen : UIScreen
 {
     public override ScreenName screenName
     {
         get
         {
-            return ScreenName.Settings;
+            return ScreenName.GameHud;
         }
     }
 
     public override IEnumerator Init()
     {
-        yield return new WaitForSeconds(5);
+        yield return null;
     }
 
     protected override void OnExit()

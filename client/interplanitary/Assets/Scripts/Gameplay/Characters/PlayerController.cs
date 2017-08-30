@@ -98,28 +98,36 @@ public class PlayerController : GenericCharacterController
 
     void Update()
     {
-        if (currentlyInteractableObjects.Count > 0 && Input.GetButton(InputAxis.PlayerControl.INTERACT))
+        if(Input.GetButton(InputAxis.PlayerControl.INVENTORY))
         {
-            currentlyInteractableObjects[0].Interact(CharacterInstance);
-            currentlyInteractableObjects.RemoveAt(0);
+            //UIManager.instance.ToggleOverlay(UIManager.Overlays.Inventory);
+        }
+        else
+        {
+            if (currentlyInteractableObjects.Count > 0 && Input.GetButton(InputAxis.PlayerControl.INTERACT))
+            {
+                currentlyInteractableObjects[0].Interact(CharacterInstance);
+                currentlyInteractableObjects.RemoveAt(0);
+            }
+
+            inputMoveAmount = Input.GetAxis(InputAxis.PlayerControl.HORIZONTAL);
+            jumpButtonPressed = Input.GetButtonDown(InputAxis.PlayerControl.JUMP);
+
+            float equippedSwap = Input.GetAxis(InputAxis.PlayerControl.EQUIPPED_SWAP);
+
+            if (equippedSwap != 0 && Time.time > nextWeaponSwapTime)
+            {
+                nextWeaponSwapTime = Time.time + weaponSwapCooldown;
+                // !!! TODO swap weapon
+                CharacterInstance.CycleWeapon(equippedSwap < 0);
+            }
+            // else if so that firing cannot occur on the same frame as swapping weapons
+            else if(Input.GetButton(InputAxis.PlayerControl.FIRE))
+            {
+                CharacterInstance.UsePrimary();
+            }
         }
 
-        inputMoveAmount = Input.GetAxis(InputAxis.PlayerControl.HORIZONTAL);
-        jumpButtonPressed = Input.GetButtonDown(InputAxis.PlayerControl.JUMP);
-
-        float equippedSwap = Input.GetAxis(InputAxis.PlayerControl.EQUIPPED_SWAP);
-
-        if (equippedSwap != 0 && Time.time > nextWeaponSwapTime)
-        {
-            nextWeaponSwapTime = Time.time + weaponSwapCooldown;
-            // !!! TODO swap weapon
-            CharacterInstance.CycleWeapon(equippedSwap < 0);
-        }
-        // else if so that firing cannot occur on the same frame as swapping weapons
-        else if(Input.GetButton(InputAxis.PlayerControl.FIRE))
-        {
-            CharacterInstance.UsePrimary();
-        }
     }
 
     bool IsFacingRight

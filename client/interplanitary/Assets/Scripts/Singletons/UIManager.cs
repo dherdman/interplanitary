@@ -8,7 +8,8 @@ public enum ScreenName
     Splash,
     Loading,
     MainMenu,
-    Settings
+    Settings,
+    GameHud,
 }
 
 public class UIManager : Singleton<UIManager>
@@ -41,7 +42,11 @@ public class UIManager : Singleton<UIManager>
 
     public void StartGame ()
     {
-        SceneManager.LoadScene(Scenes.Gameplay);
+        ShowScreen(ScreenName.Loading, () =>
+        {
+            SceneManager.LoadScene(Scenes.Gameplay);
+            ShowScreen(ScreenName.GameHud);
+        });
     }
 
     public void ShowScreen(ScreenName name, System.Action onScreenReady = null)
@@ -60,6 +65,13 @@ public class UIManager : Singleton<UIManager>
                             onScreenReady();
                         }
                     });
+                }
+                else
+                {
+                    if (onScreenReady != null)
+                    {
+                        onScreenReady();
+                    }
                 }
             });
         }
