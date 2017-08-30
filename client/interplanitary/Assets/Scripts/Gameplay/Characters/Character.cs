@@ -3,39 +3,37 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // !!! TODO implement damagable interface
-[RequireComponent(typeof(Inventory)), RequireComponent(typeof(GenericCharacterController))]
+[RequireComponent(typeof(GenericCharacterController))]
 public class Character : MonoBehaviour
 {
     [SerializeField]
     Transform WeaponHold;
 
     [SerializeField]
-    Item EquippedWeaponPrefab;
-    public Item EquippedItem
+    Item InitiallyEquippedWeaponPrefab;
+    public Item SelectedItem
     {
         get; private set;
     }
 
     GenericCharacterController CharacterControllerInstance;
 
+    [SerializeField]
     Inventory CharacterInventory;
 
-    public bool HasFreeSlotInInventory
+    public bool HasSlotForItemInInventory(Item itm)
     {
-        get
-        {
-            return CharacterInventory.HasFreeSlot;
-        }
+        return CharacterInventory.HasSlotForItem(itm);
     }
 
     void Start()
     {
         CharacterControllerInstance = GetComponent<PlayerController>();
-        CharacterInventory = GetComponent<Inventory>();
 
-        if (EquippedWeaponPrefab)
+        if (InitiallyEquippedWeaponPrefab)
         {
-            EquipItem(EquippedWeaponPrefab);
+            PickupItem(Instantiate(InitiallyEquippedWeaponPrefab));
+            CycleWeapon(true);
         }
     }
 
@@ -60,45 +58,48 @@ public class Character : MonoBehaviour
     // !!!!! TODO (also in player controller) should be animation based, this is temp
     public void AimAt(Vector3 aimTarget)
     {
-        // only guns can be aimed, melee does not change based on mouse position
-        if (EquippedItem != null && EquippedItem.GetType() == typeof(Gun))
+        // only guns can be aimed
+        if (SelectedItem != null && SelectedItem.GetType() == typeof(Gun))
         {
             WeaponHold.LookAt(aimTarget);
-            WeaponHold.localRotation = Quaternion.Euler(WeaponHold.localRotation.eulerAngles.x, WeaponHold.localRotation.eulerAngles.y, 0f);
+            WeaponHold.localRotation = Quaternion.Euler(WeaponHold.localRotation.eulerAngles.x, 0f, 0f);
         }
     }
 
     public void UsePrimary()
     {
-        if (EquippedItem != null)
+        if (SelectedItem != null)
         {
-            EquippedItem.UsePrimary();
+            SelectedItem.UsePrimary();
         }
     }
 
     public void EquipItem(Item toBeEquipped)
     {
-        if(EquippedItem != null)
+        if(SelectedItem != null)
         {
-            EquippedItem.DestroySelf();
+            SelectedItem.gameObject.SetActive(false);
         }
 
-        EquippedItem = Instantiate(toBeEquipped, WeaponHold.position, WeaponHold.rotation).GetComponent<Item>();
+        SelectedItem = toBeEquipped;
+        SelectedItem.transform.parent = WeaponHold;
+        SelectedItem.transform.localPosition = Vector3.zero;
+        SelectedItem.transform.localRotation = Quaternion.identity;
+        toBeEquipped.gameObject.SetActive(true);
 
         // disable item interaction hitbox 
-        Collider c = EquippedItem.GetComponent<Collider>();
+        Collider c = SelectedItem.GetComponent<Collider>();
         if(c != null)
         {
-            EquippedItem.GetComponent<Collider>().enabled = false; 
+            SelectedItem.GetComponent<Collider>().enabled = false; 
         }
 
-        EquippedItem.transform.parent = WeaponHold;
+        SelectedItem.transform.parent = WeaponHold;
     }
 
-    public void EquipFromInventory ()
+    public void CycleWeapon(bool shouldGetPrev)
     {
-        PickupItem(EquippedItem);
-        EquipItem(CharacterInventory.GetItem());
+        EquipItem(CharacterInventory.CycleWeapon(shouldGetPrev));
     }
 
     public bool PickupItem(Item item)

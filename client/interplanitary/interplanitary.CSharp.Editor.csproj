@@ -120,8 +120,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Editor\DefineSymbolWindow.cs" />
-    <Compile Include="Assets\Scripts\Editor\ScenePicker.cs" />
+    <Compile Include="Assets\Scripts\Editor\Tools\DefineSymbolWindow.cs" />
+    <Compile Include="Assets\Scripts\Editor\Tools\ScenePicker.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\StandardAssets\ThirdPersonCharacter\ThirdPersonCharacterGuidelines.txt" />

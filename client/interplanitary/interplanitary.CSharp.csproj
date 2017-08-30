@@ -92,7 +92,8 @@
     <Compile Include="Assets\Scripts\Gameplay\Camera\TargetTrackingCamera.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Characters\Character.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Characters\GenericCharacterController.cs" />
-    <Compile Include="Assets\Scripts\Gameplay\Characters\Inventory.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Characters\Inventory\EquippedItems.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Characters\Inventory\Inventory.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Characters\Player.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Characters\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Items\Item.cs" />

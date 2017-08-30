@@ -7,7 +7,7 @@ public class PlayerController : GenericCharacterController
 {
     // !!! TODO temp until animated?
     float nextWeaponSwapTime = 0f;
-    float weaponSwapCooldown = 0.5f;
+    float weaponSwapCooldown = 0.1f;
 
     static class ANIM_STATE
     {
@@ -113,7 +113,7 @@ public class PlayerController : GenericCharacterController
         {
             nextWeaponSwapTime = Time.time + weaponSwapCooldown;
             // !!! TODO swap weapon
-            CharacterInstance.EquipFromInventory();
+            CharacterInstance.CycleWeapon(equippedSwap < 0);
         }
         // else if so that firing cannot occur on the same frame as swapping weapons
         else if(Input.GetButton(InputAxis.PlayerControl.FIRE))

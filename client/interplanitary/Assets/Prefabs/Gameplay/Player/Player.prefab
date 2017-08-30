@@ -927,6 +927,21 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &1731333493104464
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 4315146271954962}
+  m_Layer: 0
+  m_Name: InventoryContainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &1740400235736364
 GameObject:
   m_ObjectHideFlags: 1
@@ -1122,7 +1137,6 @@ GameObject:
   - component: {fileID: 114988142544375370}
   - component: {fileID: 114602509455905416}
   - component: {fileID: 114687314895355002}
-  - component: {fileID: 114807782573839758}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1674,6 +1688,19 @@ Transform:
   m_Father: {fileID: 4782282642527004}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4315146271954962
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1731333493104464}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4343307272705648}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4324488898846954
 Transform:
   m_ObjectHideFlags: 1
@@ -1727,6 +1754,7 @@ Transform:
   - {fileID: 4698953526688528}
   - {fileID: 4000181774874302}
   - {fileID: 4951016164798548}
+  - {fileID: 4315146271954962}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
@@ -2528,8 +2556,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   WeaponHold: {fileID: 4951016164798548}
-  EquippedWeaponPrefab: {fileID: 114126886203221104, guid: 51e2ea38e58d2f34a8adb645c2e370da,
+  InitiallyEquippedWeaponPrefab: {fileID: 114946462067693054, guid: caa87554dc7779b4a9980bf3e252f280,
     type: 2}
+  CharacterInventory:
+    InventoryContainer: {fileID: 4315146271954962}
+    ReserveItems:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    Equipped:
+      Weapons:
+      - {fileID: 0}
+      - {fileID: 0}
 --- !u!114 &114687314895355002
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2543,18 +2583,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   closeRelativePosition: {x: 0, y: 0, z: 10}
   farRelativePosition: {x: 0, y: 0, z: 20}
---- !u!114 &114807782573839758
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1886478927793314}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b3500258846492b4ab03a1976ba588a2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  InventorySlots: 5
 --- !u!114 &114988142544375370
 MonoBehaviour:
   m_ObjectHideFlags: 1
