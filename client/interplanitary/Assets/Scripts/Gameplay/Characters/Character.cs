@@ -4,7 +4,7 @@ using UnityEngine;
 
 // !!! TODO implement damagable interface
 [RequireComponent(typeof(GenericCharacterController))]
-public class Character : MonoBehaviour
+public abstract class Character : MonoBehaviour
 {
     [SerializeField]
     Transform WeaponHold;
@@ -16,10 +16,16 @@ public class Character : MonoBehaviour
         get; private set;
     }
 
+    // !!! TODO if online introduced this won't behave as expected
+    public bool IsPlayer
+    {
+        get; private set;
+    }
+
     GenericCharacterController CharacterControllerInstance;
 
     [SerializeField]
-    Inventory CharacterInventory;
+    public Inventory CharacterInventory;
 
     public bool HasSlotForItemInInventory(Item itm)
     {
@@ -28,13 +34,23 @@ public class Character : MonoBehaviour
 
     void Start()
     {
-        CharacterControllerInstance = GetComponent<PlayerController>();
+        CharacterInventory.SetCharacter(this);
+
+        CharacterControllerInstance = GetComponent<GenericCharacterController>();
+
+        IsPlayer = this.GetType() == typeof(Player);
 
         if (InitiallyEquippedWeaponPrefab)
         {
             PickupItem(Instantiate(InitiallyEquippedWeaponPrefab));
             CycleWeapon(true);
         }
+
+        OnStart();
+    }
+    protected virtual void OnStart()
+    {
+
     }
 
     /// <summary>
@@ -76,7 +92,7 @@ public class Character : MonoBehaviour
 
     public void EquipItem(Item toBeEquipped)
     {
-        if(SelectedItem != null)
+        if (SelectedItem != null)
         {
             SelectedItem.gameObject.SetActive(false);
         }
@@ -89,9 +105,9 @@ public class Character : MonoBehaviour
 
         // disable item interaction hitbox 
         Collider c = SelectedItem.GetComponent<Collider>();
-        if(c != null)
+        if (c != null)
         {
-            SelectedItem.GetComponent<Collider>().enabled = false; 
+            SelectedItem.GetComponent<Collider>().enabled = false;
         }
 
         SelectedItem.transform.parent = WeaponHold;
@@ -99,11 +115,34 @@ public class Character : MonoBehaviour
 
     public void CycleWeapon(bool shouldGetPrev)
     {
-        EquipItem(CharacterInventory.CycleWeapon(shouldGetPrev));
+        int initiallySelected = CharacterInventory.Equipped.SelectedWeaponIndex;
+        Weapon w = CharacterInventory.Equipped.CycleWeapon(shouldGetPrev);
+
+        // If a new weapon has been selected
+        if (CharacterInventory.Equipped.SelectedWeaponIndex != initiallySelected)
+        {
+            // equip the new weapon
+            EquipItem(w);
+
+            // Update the hud. Un-Select initiallySelected, Select SelectedWeaponIndex
+            if (IsPlayer && GameManager.instance.GameHud != null)
+            {
+                GameManager.instance.GameHud.UpdateWeaponSlot(initiallySelected, false);
+                GameManager.instance.GameHud.UpdateWeaponSlot(CharacterInventory.Equipped.SelectedWeaponIndex, true, w);
+
+                InventoryScreen invScreen = (InventoryScreen)UIManager.instance.GetScreenInstance(ScreenName.Inventory);
+                if (invScreen != null)
+                {
+                    invScreen.UpdateEquippedWeaponSlot(initiallySelected);
+                    invScreen.UpdateEquippedWeaponSlot(CharacterInventory.Equipped.SelectedWeaponIndex);
+                }
+            }
+        }
+
     }
 
     public bool PickupItem(Item item)
     {
-        return CharacterInventory.AddItem(item);
+        return CharacterInventory.AddItem(item) != InventoryPickupDestination.none;
     }
 }

@@ -90,7 +90,7 @@ public abstract class UIScreen : MonoBehaviour
         }
     }
 
-    public abstract IEnumerator Init();
+    public abstract IEnumerator Init(params object[] parameters);
     protected abstract void OnStart();
     protected abstract void OnUpdate();
     protected abstract void OnExit();

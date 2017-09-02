@@ -6,8 +6,15 @@ using UnityEngine;
 public class EquippedItems
 {
     [SerializeField]
-    private List<Weapon> Weapons;
-    int SelectedWeaponIndex = 0;
+    public List<Weapon> Weapons;
+    int _selectedWeaponIndex = -1;
+    public int SelectedWeaponIndex
+    {
+        get
+        {
+            return _selectedWeaponIndex;
+        }
+    }
     // !!! TODO will contain armor and such in the future
 
     public int WeaponCount
@@ -40,7 +47,10 @@ public class EquippedItems
         }
     }
 
-    public bool EquipItem(Item itm)
+    /// <summary>
+    /// Returns -1 if unable to equip, else returns the slot number the item was equipped to
+    /// </summary>
+    public int EquipItem(Item itm)
     {
         System.Type itemType = itm.GetType();
 
@@ -50,11 +60,16 @@ public class EquippedItems
         }
         else
         {
-            return false; // base case, if unknown item type if cannot be equipped
+            return -1; // base case, if unknown item type if cannot be equipped
         }
     }
 
-    bool EquipWeapon(Weapon wpn)
+    public bool IsWeaponSlotSelected(int i)
+    {
+        return i == SelectedWeaponIndex;
+    }
+
+    int EquipWeapon(Weapon wpn)
     {
         return Inventory.FillFirstOpenSlot(Weapons, wpn);
     }
@@ -67,27 +82,27 @@ public class EquippedItems
             step = -1; 
         }
 
-        int startIndex = SelectedWeaponIndex;
+        int startIndex = _selectedWeaponIndex;
 
         do
         {
-            SelectedWeaponIndex += step;
+            _selectedWeaponIndex += step;
 
-            if (SelectedWeaponIndex < 0)
+            if (_selectedWeaponIndex < 0)
             {
-                SelectedWeaponIndex = Weapons.Count - 1;
+                _selectedWeaponIndex = Weapons.Count - 1;
             }
-            else if (SelectedWeaponIndex > Weapons.Count - 1)
+            else if (_selectedWeaponIndex > Weapons.Count - 1)
             {
-                SelectedWeaponIndex = 0;
+                _selectedWeaponIndex = 0;
             }
 
-            if(SelectedWeaponIndex == startIndex)
+            if(_selectedWeaponIndex == startIndex)
             {
                 break; // stop if we go in a full circle
             }
-        } while (Weapons[SelectedWeaponIndex] == null);
+        } while (Weapons[_selectedWeaponIndex] == null);
 
-        return Weapons[SelectedWeaponIndex];
+        return Weapons[_selectedWeaponIndex];
     }
 }

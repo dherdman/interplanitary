@@ -332,9 +332,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ebac832625d24f41a60f1ffbf3a5c65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _itemModel: {fileID: 114185007368915998, guid: 479b278b3ad991a40857365275daa8f8,
-    type: 2}
-  _itemType: 0
+  _icon: {fileID: 21300000, guid: e5ff0bcda0484e14c82f2bd8a4f78ed1, type: 3}
+  _itemName: SMG
   Damage: 10
   Range: 100
   MuzzleVelocity: 10

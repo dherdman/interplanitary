@@ -98,9 +98,9 @@ public class PlayerController : GenericCharacterController
 
     void Update()
     {
-        if(Input.GetButton(InputAxis.PlayerControl.INVENTORY))
+        if(Input.GetButtonDown(InputAxis.PlayerControl.INVENTORY))
         {
-            //UIManager.instance.ToggleOverlay(UIManager.Overlays.Inventory);
+            UIManager.instance.ToggleScreen(ScreenName.Inventory, null, CharacterInstance);
         }
         else
         {

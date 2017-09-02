@@ -620,9 +620,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ebac832625d24f41a60f1ffbf3a5c65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _itemModel: {fileID: 114652492601594154, guid: d8df5b4720e485e4ab64945ce11394fa,
-    type: 2}
-  _itemType: 0
+  _icon: {fileID: 21300000, guid: 1e605f94a8406384899e1a6ed0eb450b, type: 3}
+  _itemName: Rifle
   Damage: 50
   Range: 100
   MuzzleVelocity: 25

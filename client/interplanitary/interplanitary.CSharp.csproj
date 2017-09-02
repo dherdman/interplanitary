@@ -117,9 +117,12 @@
     <Compile Include="Assets\Scripts\Singletons\ProjectileContainer.cs" />
     <Compile Include="Assets\Scripts\Singletons\Singleton.cs" />
     <Compile Include="Assets\Scripts\Singletons\UIManager.cs" />
+    <Compile Include="Assets\Scripts\UI\Components\UIButton.cs" />
+    <Compile Include="Assets\Scripts\UI\Components\UIItemSlot.cs" />
     <Compile Include="Assets\Scripts\UI\Screens\GameHudScreen.cs" />
+    <Compile Include="Assets\Scripts\UI\Screens\InventoryScreen.cs" />
+    <Compile Include="Assets\Scripts\UI\Screens\LoadingScreen.cs" />
     <Compile Include="Assets\Scripts\UI\Screens\UIScreen.cs" />
-    <Compile Include="Assets\Scripts\UI\UIButton.cs" />
     <Compile Include="Assets\Scripts\Util\DontDestroyOnLoad.cs" />
   </ItemGroup>
   <ItemGroup>

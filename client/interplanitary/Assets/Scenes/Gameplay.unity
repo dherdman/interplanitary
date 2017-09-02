@@ -824,6 +824,16 @@ Prefab:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 114602509455905416, guid: 9eacac52026d9324bada2883684d5b87,
+        type: 2}
+      propertyPath: CharacterInventory.Backpack.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 114602509455905416, guid: 9eacac52026d9324bada2883684d5b87,
+        type: 2}
+      propertyPath: CharacterInventory.Equipped.Weapons.Array.size
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 4343307272705648, guid: 9eacac52026d9324bada2883684d5b87, type: 2}
       propertyPath: m_LocalPosition.x
       value: 7.5

@@ -2,6 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum InventoryPickupDestination
+{
+    none,
+    backpack,
+    equip
+}
+
 [System.Serializable]
 public class Inventory
 {
@@ -9,23 +16,52 @@ public class Inventory
     Transform InventoryContainer;
 
     [SerializeField]
-    List<Item> ReserveItems;
+    public List<Item> Backpack;
     [SerializeField]
-    EquippedItems Equipped;
+    public EquippedItems Equipped;
 
-    void Start()
+    Character character;
+    public void SetCharacter(Character c)
     {
-        Debug.LogError("[Inventory] Inventory container not given!");
+        character = c;
     }
 
     public bool HasSlotForItem(Item item)
     {
-        return Equipped.HasSlotForItem(item) || ReserveItems.Contains(null);
+        return Equipped.HasSlotForItem(item) || Backpack.Contains(null);
     }
 
-    public bool AddItem(Item item)
+    public InventoryPickupDestination AddItem(Item item)
     {
-        if(Equipped.EquipItem(item) || FillFirstOpenSlot(ReserveItems, item))
+        InventoryPickupDestination addState = InventoryPickupDestination.none;
+
+        int slot = Equipped.EquipItem(item);
+
+        if (slot >= 0)
+        {
+            addState = InventoryPickupDestination.equip;
+
+            if(character.IsPlayer)
+            {
+                UpdateInventoryItemUI(InventoryPickupDestination.equip, slot);
+            }
+        }
+        else 
+        {
+            slot = FillFirstOpenSlot(Backpack, item);
+
+            if(slot >= 0)
+            {
+                addState = InventoryPickupDestination.backpack;
+
+                if (character.IsPlayer)
+                {
+                    UpdateInventoryItemUI(InventoryPickupDestination.backpack, slot);
+                }
+            }
+        }
+
+        if (addState != InventoryPickupDestination.none)
         {
             // !!! TODO Will need revision when full equiped system is in place
             item.gameObject.SetActive(false); // item "dissapears" until in use
@@ -33,27 +69,43 @@ public class Inventory
 
             item.transform.parent = InventoryContainer;
             item.transform.localPosition = Vector3.zero; // !!! TODO this might not matter. Might be more relevent when re-enabling items
-
-            return true;
         }
-        return false;
+
+        return addState;
     }
 
-    public Weapon CycleWeapon(bool shouldGetPrev = false)
+    void UpdateInventoryItemUI(InventoryPickupDestination pickupType, int slot)
     {
-        return Equipped.CycleWeapon(shouldGetPrev);
+        InventoryScreen invScreen = (InventoryScreen)UIManager.instance.GetScreenInstance(ScreenName.Inventory);
+
+        if(pickupType == InventoryPickupDestination.backpack)
+        {
+            if(invScreen != null)
+            {
+                invScreen.UpdateBackpackSlot(slot);
+            }
+        }
+        else if(pickupType == InventoryPickupDestination.equip)
+        {
+            if(invScreen != null)
+            {
+                invScreen.UpdateEquippedWeaponSlot(slot);
+            }
+            GameManager.instance.UpdateHudSlot(slot);
+        }
     }
 
-    public static bool FillFirstOpenSlot<T>(List<T> list, T itm)
+    // !!! TODO rework how backpack is stored. Slots should have no gaps
+    public static int FillFirstOpenSlot<T>(List<T> list, T itm)
     {
         for (int i = 0; i < list.Count; i++)
         {
             if (list[i] == null)
             {
                 list[i] = itm;
-                return true;
+                return i;
             }
         }
-        return false;
+        return -1;
     }
 }

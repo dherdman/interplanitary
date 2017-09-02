@@ -5,5 +5,10 @@ using UnityEngine;
 
 public class Player : Character
 {
-    // !!! TODO will eventually house player specific code
+    protected override void OnStart()
+    {
+        base.OnStart();
+
+        GameManager.instance.RegisterPlayer(this);
+    }
 }

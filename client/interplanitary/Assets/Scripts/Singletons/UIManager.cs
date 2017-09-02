@@ -1,15 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public enum ScreenName
 {
-    Splash,
     Loading,
-    MainMenu,
-    Settings,
     GameHud,
+    Inventory,
 }
 
 public class UIManager : Singleton<UIManager>
@@ -33,51 +30,33 @@ public class UIManager : Singleton<UIManager>
         PrimaryScreenStack = new Stack<UIScreen>();
     }
 
-    public void GoToMainMenu()
+    public void ToggleScreen(ScreenName name, System.Action<UIScreen> onScreenReady = null, params object[] parameters)
     {
-        SceneManager.LoadScene(Scenes.Menu);
-
-        ShowScreen(ScreenName.MainMenu);
-    }
-
-    public void StartGame ()
-    {
-        ShowScreen(ScreenName.Loading, () =>
+        if(CurrentActiveScreen != null && CurrentActiveScreen.screenName == name)
         {
-            SceneManager.LoadScene(Scenes.Gameplay);
-            ShowScreen(ScreenName.GameHud);
-        });
-    }
-
-    public void ShowScreen(ScreenName name, System.Action onScreenReady = null)
-    {
-        if (CurrentActiveScreen == null || CurrentActiveScreen.screenName != name)
+            CloseScreen();
+        }
+        else
         {
-            DisplayScreen(ScreenName.Loading, () =>
-            {
-                if (name != ScreenName.Loading) // if final goal is to show a screen other than loading, load that screen
-                {
-                    DisplayScreen(name, () =>
-                    {
-                        ExitScreen(ScreenName.Loading);
-                        if (onScreenReady != null)
-                        {
-                            onScreenReady();
-                        }
-                    });
-                }
-                else
-                {
-                    if (onScreenReady != null)
-                    {
-                        onScreenReady();
-                    }
-                }
-            });
+            ShowScreen(name, onScreenReady, parameters);
         }
     }
 
-    void DisplayScreen(ScreenName name, System.Action onScreenReady = null)
+    public void ShowScreen(ScreenName name, System.Action<UIScreen> onScreenReady = null, params object[] parameters)
+    {
+        if (CurrentActiveScreen == null || CurrentActiveScreen.screenName != name)
+        {
+            DisplayScreen(name, (UIScreen definitelyNextScreen) =>
+            {
+                if (onScreenReady != null)
+                {
+                    onScreenReady(definitelyNextScreen);
+                }
+            }, parameters);
+        }
+    }
+
+    void DisplayScreen(ScreenName name, System.Action<UIScreen> onScreenReady = null, params object[] parameters)
     {
         UIScreen screen = GetScreenInstance(name);
 
@@ -86,10 +65,10 @@ public class UIManager : Singleton<UIManager>
             screen = Instantiate(GetCanvasResource(name), transform);
         }
 
-        StartCoroutine(DisplayScreen(screen, onScreenReady));
+        StartCoroutine(DisplayScreen(screen, onScreenReady, parameters));
     }
 
-    IEnumerator DisplayScreen(UIScreen screenInstance, System.Action onScreenReady = null)
+    IEnumerator DisplayScreen(UIScreen screenInstance, System.Action<UIScreen> onScreenReady = null, params object[] parameters)
     {
         screenInstance.gameObject.SetActive(true); // ensure screen is active
 
@@ -102,7 +81,7 @@ public class UIManager : Singleton<UIManager>
         else
         {
             canvas.worldCamera = CameraManager.instance.GetNewNamedOverlayCamera(screenInstance.screenName.ToString());
-            canvas.worldCamera.depth = OverlayStack.Count;
+            canvas.worldCamera.depth = OverlayStack.Count + 1;
 
             canvas.worldCamera.transform.position = new Vector3(0, (OverlayStack.Count + 1) * canvas.worldCamera.orthographicSize * 3);
 
@@ -116,13 +95,13 @@ public class UIManager : Singleton<UIManager>
             }
         }
 
-        yield return StartCoroutine(screenInstance.Init());
+        yield return StartCoroutine(screenInstance.Init(parameters));
 
         SetActiveScreen(screenInstance);
 
         if (onScreenReady != null)
         {
-            onScreenReady();
+            onScreenReady(screenInstance);
         }
     }
 
@@ -156,7 +135,7 @@ public class UIManager : Singleton<UIManager>
     /// <summary>
     /// Returns the first instantiated screen with the given name, regardless of if it is active
     /// </summary>
-    UIScreen GetScreenInstance(ScreenName name)
+    public UIScreen GetScreenInstance(ScreenName name)
     {
         for (int i = 0; i < InstantiatedScreens.Count; i++)
         {
@@ -166,6 +145,16 @@ public class UIManager : Singleton<UIManager>
             }
         }
         return null;
+    }
+
+    public void ShowLoadingScreen (System.Action<UIScreen> onLoadingScreenReady)
+    {
+        ShowScreen(ScreenName.Loading, onLoadingScreenReady);
+    }
+
+    public void HideLoadingScreen ()
+    {
+        ExitScreen(ScreenName.Loading);
     }
 
     public void CloseScreen()
