@@ -7,7 +7,7 @@ public class EquippedItems
 {
     [SerializeField]
     public List<Weapon> Weapons;
-    int _selectedWeaponIndex = -1;
+    int _selectedWeaponIndex = 0;
     public int SelectedWeaponIndex
     {
         get
@@ -33,11 +33,9 @@ public class EquippedItems
         }
     }
 
-    public bool HasSlotForItem (Item itm)
+    public bool HasSlotForItem(Item itm)
     {
-        System.Type itemType = itm.GetType();
-
-        if(itemType.IsSubclassOf(typeof(Weapon)))
+        if (itm is Weapon)
         {
             return HasEmptyWeaponSlot;
         }
@@ -50,13 +48,12 @@ public class EquippedItems
     /// <summary>
     /// Returns -1 if unable to equip, else returns the slot number the item was equipped to
     /// </summary>
-    public int EquipItem(Item itm)
+    public int EquipItem(Item itm, params object[] parameters)
     {
-        System.Type itemType = itm.GetType();
-
-        if(itemType.IsSubclassOf(typeof(Weapon)))
+        if (itm is Weapon)
         {
-            return EquipWeapon((Weapon)itm);
+            int equipSlot = parameters.Length > 0 ? parameters[0] != null ? (int)parameters[0] : -1 : -1;
+            return EquipWeapon((Weapon)itm, equipSlot);
         }
         else
         {
@@ -69,17 +66,27 @@ public class EquippedItems
         return i == SelectedWeaponIndex;
     }
 
-    int EquipWeapon(Weapon wpn)
+    int EquipWeapon(Weapon wpn, int equipSlot)
     {
-        return Inventory.FillFirstOpenSlot(Weapons, wpn);
+        if (equipSlot < 0 || equipSlot >= Weapons.Count) // if requested slot is out of bounds
+        {
+            equipSlot = Weapons.IndexOf(null);
+        }
+
+        if(equipSlot >= 0 && equipSlot < Weapons.Count)
+        {
+            Weapons[equipSlot] = wpn;
+        }
+
+        return equipSlot;
     }
 
     public Weapon CycleWeapon(bool shouldGetPrev = false)
     {
         int step = 1;
-        if(shouldGetPrev)
+        if (shouldGetPrev)
         {
-            step = -1; 
+            step = -1;
         }
 
         int startIndex = _selectedWeaponIndex;
@@ -97,7 +104,7 @@ public class EquippedItems
                 _selectedWeaponIndex = 0;
             }
 
-            if(_selectedWeaponIndex == startIndex)
+            if (_selectedWeaponIndex == startIndex)
             {
                 break; // stop if we go in a full circle
             }

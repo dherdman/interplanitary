@@ -8,6 +8,10 @@ public abstract class Character : MonoBehaviour
 {
     [SerializeField]
     Transform WeaponHold;
+    [SerializeField]
+    Transform EquippedItemsContainer;
+    [SerializeField]
+    Transform InventoryContainer;
 
     [SerializeField]
     Item InitiallyEquippedWeaponPrefab;
@@ -34,7 +38,7 @@ public abstract class Character : MonoBehaviour
 
     void Start()
     {
-        CharacterInventory.SetCharacter(this);
+        CharacterInventory.Init(this);
 
         CharacterControllerInstance = GetComponent<GenericCharacterController>();
 
@@ -95,6 +99,7 @@ public abstract class Character : MonoBehaviour
         if (SelectedItem != null)
         {
             SelectedItem.gameObject.SetActive(false);
+            SelectedItem.transform.parent = EquippedItemsContainer;
         }
 
         SelectedItem = toBeEquipped;
@@ -107,10 +112,49 @@ public abstract class Character : MonoBehaviour
         Collider c = SelectedItem.GetComponent<Collider>();
         if (c != null)
         {
-            SelectedItem.GetComponent<Collider>().enabled = false;
+            c.enabled = false;
+        }
+    }
+
+    public bool DropSelectedItem ()
+    {
+        if(SelectedItem != null)
+        {
+            // !!! TODO implement properly
+            SelectedItem.transform.parent = null;
+            SelectedItem.transform.position = Vector3.zero; // !!! TODO drop on ground
+            SelectedItem.transform.rotation = Quaternion.identity;
+
+            // enable gameobject and item interact collider
+            SelectedItem.gameObject.SetActive(true);
+            Collider c = SelectedItem.GetComponent<Collider>();
+            if (c != null)
+            {
+                c.enabled = true;
+            }
+
+            SelectedItem = null; // remove reference to item
+
+            return true;
         }
 
-        SelectedItem.transform.parent = WeaponHold;
+        return false;
+    }
+
+    public bool PutSelectedItemInBackpack()
+    {
+        // if SelectedItem is non-null, try add to inventory. 
+        // If succeeds, place SelectedItem gameobject in inventory container & dereference
+        if(SelectedItem != null && CharacterInventory.AddItem(SelectedItem, false).Destination != InventoryPickupDestination.none)
+        {
+            // disable gameobject, no need to worry about collider b/c is already disabled if selected
+            SelectedItem.gameObject.SetActive(false);
+            SelectedItem.transform.parent = InventoryContainer;
+            SelectedItem = null; // remove reference to item
+
+            return true;
+        }
+        return false;
     }
 
     public void CycleWeapon(bool shouldGetPrev)
@@ -143,6 +187,47 @@ public abstract class Character : MonoBehaviour
 
     public bool PickupItem(Item item)
     {
-        return CharacterInventory.AddItem(item) != InventoryPickupDestination.none;
+        InventoryPickupState pickupState = CharacterInventory.AddItem(item, true);
+
+        if(pickupState.Destination != InventoryPickupDestination.none)
+        {
+            item.gameObject.SetActive(false); // item "dissapears" until in use
+            item.GetComponent<Collider>().enabled = false; // Disable interaction trigger
+        }
+
+        if(pickupState.Destination == InventoryPickupDestination.backpack)
+        {
+            item.transform.parent = InventoryContainer;
+            item.transform.localPosition = Vector3.zero; // !!! TODO this might not matter. Might be more relevent when re-enabling items
+        }
+        else if(pickupState.Destination == InventoryPickupDestination.equipped || pickupState.Destination == InventoryPickupDestination.selected)
+        {
+            item.transform.parent = EquippedItemsContainer;
+            item.transform.localPosition = Vector3.zero; // !!! TODO this might not matter. Might be more relevent when re-enabling items
+
+            // If new item replaced selected, attempt to put current item in backpack, else drop it
+            if(pickupState.Destination == InventoryPickupDestination.selected)
+            {
+                if(SelectedItem != null)
+                {
+                    // if was not able to add to backpack, drop selected item
+                    if (!PutSelectedItemInBackpack()) 
+                    {
+                        DropSelectedItem();
+                    }
+                }
+                EquipItem(item);
+            }
+
+            if (GameManager.instance.GameHud != null && item is Weapon)
+            {
+                GameManager.instance.GameHud.UpdateWeaponSlot(
+                    pickupState.Slot, 
+                    pickupState.Slot == CharacterInventory.Equipped.SelectedWeaponIndex, 
+                    (Weapon)item);
+            }
+        }
+                
+        return pickupState.Destination != InventoryPickupDestination.none;
     }
 }

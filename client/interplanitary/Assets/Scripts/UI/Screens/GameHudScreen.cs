@@ -20,7 +20,6 @@ public class GameHudScreen : UIScreen
     UIItemSlot WeaponSlotPrefab;
 
     List<UIItemSlot> WeaponSlotElements;
-    int selectedSlotIndex = -1;
 
     public override IEnumerator Init(params object[] parameters)
     {

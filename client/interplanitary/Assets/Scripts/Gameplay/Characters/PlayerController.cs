@@ -80,7 +80,7 @@ public class PlayerController : GenericCharacterController
     void OnTriggerEnter(Collider col)
     {
         IInteractable interactableObj = col.gameObject.GetComponent<IInteractable>();
-        if (interactableObj != null)
+        if (interactableObj != null && !currentlyInteractableObjects.Contains(interactableObj))
         {
             currentlyInteractableObjects.Add(interactableObj); // !!! TODO add system for prioritizing or rotating interactions
         }
@@ -104,7 +104,7 @@ public class PlayerController : GenericCharacterController
         }
         else
         {
-            if (currentlyInteractableObjects.Count > 0 && Input.GetButton(InputAxis.PlayerControl.INTERACT))
+            if (currentlyInteractableObjects.Count > 0 && Input.GetButtonDown(InputAxis.PlayerControl.INTERACT))
             {
                 currentlyInteractableObjects[0].Interact(CharacterInstance);
                 currentlyInteractableObjects.RemoveAt(0);

@@ -6,72 +6,86 @@ public enum InventoryPickupDestination
 {
     none,
     backpack,
-    equip
+    equipped,
+    selected
+}
+
+public class InventoryPickupState
+{
+    public InventoryPickupDestination Destination { get; private set; }
+    public int Slot { get; private set; }
+
+    public InventoryPickupState() : this(-1, InventoryPickupDestination.none)
+    {
+    }
+    public InventoryPickupState(int _slot, InventoryPickupDestination _dest)
+    {
+        Slot = _slot;
+        Destination = _dest;
+    }
 }
 
 [System.Serializable]
 public class Inventory
 {
     [SerializeField]
-    Transform InventoryContainer;
-
-    [SerializeField]
     public List<Item> Backpack;
+    int nextBackpackSlot = 0;
+
     [SerializeField]
     public EquippedItems Equipped;
 
-    Character character;
-    public void SetCharacter(Character c)
+    public Character ParentCharacter
     {
-        character = c;
+        get; private set;
+    }
+
+    public void Init(Character c)
+    {
+        ParentCharacter = c;
     }
 
     public bool HasSlotForItem(Item item)
     {
-        return Equipped.HasSlotForItem(item) || Backpack.Contains(null);
+        return Equipped.HasSlotForItem(item) || nextBackpackSlot < Backpack.Count;
     }
 
-    public InventoryPickupDestination AddItem(Item item)
+    public InventoryPickupState AddItem(Item item, bool attemptEquip)
     {
-        InventoryPickupDestination addState = InventoryPickupDestination.none;
+        InventoryPickupDestination destination = InventoryPickupDestination.none;
 
-        int slot = Equipped.EquipItem(item);
+        int slot = -1;
 
+        if(attemptEquip)
+        {
+            slot = Equipped.EquipItem(item);
+        }
         if (slot >= 0)
         {
-            addState = InventoryPickupDestination.equip;
+            // !!! TODO will need to generalize for different item types
+            destination = slot == Equipped.SelectedWeaponIndex ? InventoryPickupDestination.selected : InventoryPickupDestination.equipped;
 
-            if(character.IsPlayer)
+            if (ParentCharacter.IsPlayer)
             {
-                UpdateInventoryItemUI(InventoryPickupDestination.equip, slot);
+                UpdateInventoryItemUI(InventoryPickupDestination.equipped, slot);
             }
         }
         else 
         {
-            slot = FillFirstOpenSlot(Backpack, item);
+            slot = AddToBackpack(item);
 
             if(slot >= 0)
             {
-                addState = InventoryPickupDestination.backpack;
+                destination = InventoryPickupDestination.backpack;
 
-                if (character.IsPlayer)
+                if (ParentCharacter.IsPlayer)
                 {
                     UpdateInventoryItemUI(InventoryPickupDestination.backpack, slot);
                 }
             }
         }
 
-        if (addState != InventoryPickupDestination.none)
-        {
-            // !!! TODO Will need revision when full equiped system is in place
-            item.gameObject.SetActive(false); // item "dissapears" until in use
-            item.GetComponent<Collider>().enabled = false; // Disable interaction trigger
-
-            item.transform.parent = InventoryContainer;
-            item.transform.localPosition = Vector3.zero; // !!! TODO this might not matter. Might be more relevent when re-enabling items
-        }
-
-        return addState;
+        return new InventoryPickupState(slot, destination);
     }
 
     void UpdateInventoryItemUI(InventoryPickupDestination pickupType, int slot)
@@ -85,7 +99,7 @@ public class Inventory
                 invScreen.UpdateBackpackSlot(slot);
             }
         }
-        else if(pickupType == InventoryPickupDestination.equip)
+        else if(pickupType == InventoryPickupDestination.equipped)
         {
             if(invScreen != null)
             {
@@ -95,16 +109,12 @@ public class Inventory
         }
     }
 
-    // !!! TODO rework how backpack is stored. Slots should have no gaps
-    public static int FillFirstOpenSlot<T>(List<T> list, T itm)
+    int AddToBackpack(Item itm)
     {
-        for (int i = 0; i < list.Count; i++)
+        if (nextBackpackSlot < Backpack.Count)
         {
-            if (list[i] == null)
-            {
-                list[i] = itm;
-                return i;
-            }
+            Backpack[nextBackpackSlot] = itm;
+            return nextBackpackSlot++;
         }
         return -1;
     }

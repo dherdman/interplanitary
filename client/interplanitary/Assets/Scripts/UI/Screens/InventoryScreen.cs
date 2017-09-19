@@ -38,7 +38,7 @@ public class InventoryScreen : UIScreen
             Debug.LogError("[InventoryScreen] Inventory Menu initalized with empty parameters. Requires a Character object");
             yield break;
         }
-        else if (!parameters[0].GetType().IsSubclassOf(typeof(Character)))
+        else if (!(parameters[0] is Character))
         {
             Debug.LogError("[InventoryScreen] Inventory Menu initalized with incorrect parameters. First parameter must be a Character object");
             yield break;
