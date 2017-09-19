@@ -143,6 +143,8 @@ public abstract class Character : MonoBehaviour
 
     public bool PutSelectedItemInBackpack()
     {
+        // !!! TODO should call a generalized fn for any equipped item to backpack
+
         // if SelectedItem is non-null, try add to inventory. 
         // If succeeds, place SelectedItem gameobject in inventory container & dereference
         if(SelectedItem != null && CharacterInventory.AddItem(SelectedItem, false).Destination != InventoryPickupDestination.none)
