@@ -5,9 +5,23 @@ using UnityEngine;
 
 public class InventoryScreen : UIScreen
 {
+    class ActiveSlot
+    {
+        public int SlotIndex;
+        public UIItemSlot SlotInstance;
+        public bool IsEquipped;
+
+        public ActiveSlot(int _idx, UIItemSlot _slotInstance, bool _isEquipped)
+        {
+            SlotIndex = _idx;
+            SlotInstance = _slotInstance;
+            IsEquipped = _isEquipped;
+        }
+    }
+
     [Header("Inventory Screen Configuration")]
     [SerializeField]
-    UIItemSlot itemSlotPrefab;
+    GameObject itemSlotPrefab;
     [SerializeField]
     Transform equippedWeaponsContainer;
     [SerializeField]
@@ -17,6 +31,8 @@ public class InventoryScreen : UIScreen
     List<UIItemSlot> equippedWeaponSlots;
 
     Character CurrentCharacter;
+
+    ActiveSlot activeSlot = null;
 
     public override ScreenName screenName
     {
@@ -67,10 +83,15 @@ public class InventoryScreen : UIScreen
         {
             if(i > equippedWeaponSlots.Count - 1)
             {
-                equippedWeaponSlots.Add(Instantiate(itemSlotPrefab, equippedWeaponsContainer));
+                GameObject slotObj = Instantiate(itemSlotPrefab, equippedWeaponsContainer);
+                UIItemSlot slotInstance = slotObj.GetComponent<UIItemSlot>();
+                equippedWeaponSlots.Add(slotInstance);
+
+                int captured_i = i;
+                slotObj.GetComponent<UIButton>().onClick.AddListener(delegate { OnItemSlotClick(captured_i, slotInstance, true); });
             }
 
-            UpdateEquippedWeaponSlot(i);
+            UpdateEquippedSlot(i);
         }
 
         // Populate backpack items list
@@ -78,24 +99,63 @@ public class InventoryScreen : UIScreen
         {
             if(i > backpackItemSlots.Count - 1)
             {
-                backpackItemSlots.Add(Instantiate(itemSlotPrefab, backpackItemsContainer));
+                GameObject slotObj = Instantiate(itemSlotPrefab, backpackItemsContainer);
+                UIItemSlot slotInstance = slotObj.GetComponent<UIItemSlot>();
+                backpackItemSlots.Add(slotInstance);
+
+                int captured_i = i;
+                slotObj.GetComponent<UIButton>().onClick.AddListener(delegate { OnItemSlotClick(captured_i, slotInstance, false); });
             }
 
             UpdateBackpackSlot(i);
         }
     }
 
-    public void UpdateEquippedWeaponSlot (int i)
+    void OnItemSlotClick (int slotIdx, UIItemSlot slotInstance, bool isEquipped)
     {
-        UpdateSlot(i, equippedWeaponSlots, CurrentCharacter.CharacterInventory.Equipped.Weapons[i], CurrentCharacter.CharacterInventory.Equipped.IsWeaponSlotSelected(i));
+        if (activeSlot == null)
+        {
+            activeSlot = new ActiveSlot(slotIdx, slotInstance, isEquipped);
+
+            slotInstance.SetSelected(true);
+        }
+        else
+        {
+            // ask character to update their inventory state
+            if(CurrentCharacter.SwapItems(activeSlot.SlotIndex, activeSlot.IsEquipped, slotIdx, isEquipped))
+            {
+                UpdateSlot(activeSlot.SlotIndex, activeSlot.IsEquipped);
+                UpdateSlot(slotIdx, isEquipped);
+            }
+
+            activeSlot.SlotInstance.SetSelected(false);
+            activeSlot = null;
+        }
     }
 
-    public void UpdateBackpackSlot (int i)
+    public void UpdateSlot(int i, bool equipped)
     {
-        UpdateSlot(i, backpackItemSlots, CurrentCharacter.CharacterInventory.Backpack[i]);
+        if(equipped)
+        {
+            UpdateEquippedSlot(i);
+        }
+        else
+        {
+            UpdateBackpackSlot(i);
+        }
     }
 
-    void UpdateSlot(int i, List<UIItemSlot> slotsList, Item itm, bool selected = false)
+    void UpdateEquippedSlot (int i)
+    {
+        UpdateSlotWithListItem(i, equippedWeaponSlots, CurrentCharacter.CharacterInventory.Equipped.Weapons[i], CurrentCharacter.CharacterInventory.Equipped.IsWeaponSlotSelected(i));
+    }
+
+    void UpdateBackpackSlot (int i)
+    {
+        UpdateSlotWithListItem(i, backpackItemSlots, CurrentCharacter.CharacterInventory.Backpack[i]);
+    }
+
+    void UpdateSlotWithListItem(int i, List<UIItemSlot> slotsList, Item itm, bool selected = false)
     {
         if(itm)
         {
@@ -103,16 +163,17 @@ public class InventoryScreen : UIScreen
         }
         else
         {
-            slotsList[i].SetSlotProperties(selected);
+            slotsList[i].SetSlotProperties(selected, "", null);
         }
-    }
-
-    protected override void OnExit()
-    {
     }
 
     protected override void OnStart()
     {
+    }
+
+    protected override void OnExit()
+    {
+        activeSlot = null;
     }
 
     protected override void OnUpdate()

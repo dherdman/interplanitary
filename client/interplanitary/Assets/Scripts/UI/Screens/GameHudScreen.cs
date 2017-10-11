@@ -49,7 +49,7 @@ public class GameHudScreen : UIScreen
 
         if(weapon == null)
         {
-            WeaponSlotElements[slotIndex].SetSlotProperties(isSelected);
+            WeaponSlotElements[slotIndex].SetSlotProperties(isSelected, "", null);
         }
         else
         {

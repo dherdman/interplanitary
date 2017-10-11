@@ -94,6 +94,33 @@ public abstract class Character : MonoBehaviour
         }
     }
 
+    // !!! TODO might make this borderlands-y equipped-only swapping
+    public bool SwapItems(int idx1, bool isEquipped1, int idx2, bool isEquipped2)
+    {
+        if (!CharacterInventory.SlotIsInRange(idx1, isEquipped1) || !CharacterInventory.SlotIsInRange(idx2, isEquipped2))
+        {
+            return false;
+        }
+
+        // if swapping with self, insta-succeed
+        if (idx1 == idx2 && isEquipped1 == isEquipped2)
+        {
+            return true;
+        }
+
+        // get item 1 and 2
+        Item itm1 = CharacterInventory.GetItemByIndex(idx1, isEquipped1);
+        Item itm2 = CharacterInventory.GetItemByIndex(idx2, isEquipped2);
+
+        // if able to get both items
+        CharacterInventory.SetItemAtIndex(idx1, isEquipped1, itm2);
+        CharacterInventory.SetItemAtIndex(idx2, isEquipped2, itm1);
+
+        // !!! TODO update item models (move to containers n stuff)
+
+        return true;
+    }
+
     public void EquipItem(Item toBeEquipped)
     {
         if (SelectedItem != null)
@@ -116,9 +143,9 @@ public abstract class Character : MonoBehaviour
         }
     }
 
-    public bool DropSelectedItem ()
+    public bool DropSelectedItem()
     {
-        if(SelectedItem != null)
+        if (SelectedItem != null)
         {
             // !!! TODO implement properly
             SelectedItem.transform.parent = null;
@@ -147,7 +174,7 @@ public abstract class Character : MonoBehaviour
 
         // if SelectedItem is non-null, try add to inventory. 
         // If succeeds, place SelectedItem gameobject in inventory container & dereference
-        if(SelectedItem != null && CharacterInventory.AddItem(SelectedItem, false).Destination != InventoryPickupDestination.none)
+        if (SelectedItem != null && CharacterInventory.AddItem(SelectedItem, false).Destination != InventoryPickupDestination.none)
         {
             // disable gameobject, no need to worry about collider b/c is already disabled if selected
             SelectedItem.gameObject.SetActive(false);
@@ -179,8 +206,8 @@ public abstract class Character : MonoBehaviour
                 InventoryScreen invScreen = (InventoryScreen)UIManager.instance.GetScreenInstance(ScreenName.Inventory);
                 if (invScreen != null)
                 {
-                    invScreen.UpdateEquippedWeaponSlot(initiallySelected);
-                    invScreen.UpdateEquippedWeaponSlot(CharacterInventory.Equipped.SelectedWeaponIndex);
+                    invScreen.UpdateSlot(initiallySelected, true);
+                    invScreen.UpdateSlot(CharacterInventory.Equipped.SelectedWeaponIndex, true);
                 }
             }
         }
@@ -191,29 +218,29 @@ public abstract class Character : MonoBehaviour
     {
         InventoryPickupState pickupState = CharacterInventory.AddItem(item, true);
 
-        if(pickupState.Destination != InventoryPickupDestination.none)
+        if (pickupState.Destination != InventoryPickupDestination.none)
         {
             item.gameObject.SetActive(false); // item "dissapears" until in use
             item.GetComponent<Collider>().enabled = false; // Disable interaction trigger
         }
 
-        if(pickupState.Destination == InventoryPickupDestination.backpack)
+        if (pickupState.Destination == InventoryPickupDestination.backpack)
         {
             item.transform.parent = InventoryContainer;
             item.transform.localPosition = Vector3.zero; // !!! TODO this might not matter. Might be more relevent when re-enabling items
         }
-        else if(pickupState.Destination == InventoryPickupDestination.equipped || pickupState.Destination == InventoryPickupDestination.selected)
+        else if (pickupState.Destination == InventoryPickupDestination.equipped || pickupState.Destination == InventoryPickupDestination.selected)
         {
             item.transform.parent = EquippedItemsContainer;
             item.transform.localPosition = Vector3.zero; // !!! TODO this might not matter. Might be more relevent when re-enabling items
 
             // If new item replaced selected, attempt to put current item in backpack, else drop it
-            if(pickupState.Destination == InventoryPickupDestination.selected)
+            if (pickupState.Destination == InventoryPickupDestination.selected)
             {
-                if(SelectedItem != null)
+                if (SelectedItem != null)
                 {
                     // if was not able to add to backpack, drop selected item
-                    if (!PutSelectedItemInBackpack()) 
+                    if (!PutSelectedItemInBackpack())
                     {
                         DropSelectedItem();
                     }
@@ -224,12 +251,12 @@ public abstract class Character : MonoBehaviour
             if (GameManager.instance.GameHud != null && item is Weapon)
             {
                 GameManager.instance.GameHud.UpdateWeaponSlot(
-                    pickupState.Slot, 
-                    pickupState.Slot == CharacterInventory.Equipped.SelectedWeaponIndex, 
+                    pickupState.Slot,
+                    pickupState.Slot == CharacterInventory.Equipped.SelectedWeaponIndex,
                     (Weapon)item);
             }
         }
-                
+
         return pickupState.Destination != InventoryPickupDestination.none;
     }
 }

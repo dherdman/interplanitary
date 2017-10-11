@@ -50,6 +50,23 @@ public class Inventory
         return Equipped.HasSlotForItem(item) || nextBackpackSlot < Backpack.Count;
     }
 
+    public bool SlotIsInRange(int i, bool isEquipped)
+    {
+        if(i < 0)
+        {
+            return false;
+        }
+
+        if(isEquipped)
+        {
+            return i < Equipped.WeaponCount;
+        }
+        else
+        {
+            return i < Backpack.Count;
+        }
+    }
+
     public InventoryPickupState AddItem(Item item, bool attemptEquip)
     {
         InventoryPickupDestination destination = InventoryPickupDestination.none;
@@ -88,6 +105,58 @@ public class Inventory
         return new InventoryPickupState(slot, destination);
     }
 
+    public Item GetItemByIndex(int slotIdx, bool isEquipped)
+    {
+        if (slotIdx < 0)
+        {
+            return null;
+        }
+
+        if (isEquipped)
+        {
+            // !!! TODO this logic must improve as equipped is built out
+            if (Equipped.Weapons.Count > slotIdx)
+            {
+                return Equipped.Weapons[slotIdx];
+            }
+        }
+        else
+        {
+            if (Backpack.Count > slotIdx)
+            {
+                return Backpack[slotIdx];
+            }
+        }
+        return null;
+    }
+
+    public bool SetItemAtIndex(int slotIdx, bool isEquipped, Item itm)
+    {
+        if (slotIdx < 0)
+        {
+            return false;
+        }
+
+        if (isEquipped)
+        {
+            // !!! TODO this logic must improve as equipped is built out
+            if (Equipped.Weapons.Count > slotIdx)
+            {
+                Equipped.Weapons[slotIdx] = (Weapon)itm;
+                return true;
+            }
+        }
+        else
+        {
+            if (Backpack.Count > slotIdx)
+            {
+                Backpack[slotIdx] = itm;
+                return true;
+            }
+        }
+        return false;
+    }
+
     void UpdateInventoryItemUI(InventoryPickupDestination pickupType, int slot)
     {
         InventoryScreen invScreen = (InventoryScreen)UIManager.instance.GetScreenInstance(ScreenName.Inventory);
@@ -96,14 +165,14 @@ public class Inventory
         {
             if(invScreen != null)
             {
-                invScreen.UpdateBackpackSlot(slot);
+                invScreen.UpdateSlot(slot, false);
             }
         }
         else if(pickupType == InventoryPickupDestination.equipped)
         {
             if(invScreen != null)
             {
-                invScreen.UpdateEquippedWeaponSlot(slot);
+                invScreen.UpdateSlot(slot, true);
             }
             GameManager.instance.UpdateHudSlot(slot);
         }

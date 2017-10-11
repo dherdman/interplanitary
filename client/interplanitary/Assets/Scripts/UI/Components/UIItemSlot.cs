@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(UIButton))]
 public class UIItemSlot : MonoBehaviour
 {
     [SerializeField]
@@ -15,21 +16,20 @@ public class UIItemSlot : MonoBehaviour
     [SerializeField]
     GameObject unselectedBackdrop;
 
-    public void SetSlotProperties(bool selected, string _itemName = "", Sprite _itemIcon = null)
+    public void SetSlotProperties(bool selected, string _itemName, Sprite _itemIcon)
     {
         itemName.text = _itemName;
-        if(_itemIcon != null) // if a new icon is given, set sprite and ensure white color
-        {
-            itemIcon.color = Color.white;
-            itemIcon.sprite = _itemIcon;
-        }
-        else if(itemIcon.sprite == null) // if no new icon is given and there is no existing icon, set icon to clear
-        {
-            itemIcon.color = Color.clear;
-        }
+        itemIcon.sprite = _itemIcon;
 
+        itemIcon.color = itemIcon.sprite != null ? Color.white : Color.clear;
+
+        SetSelected(selected);
+    }
+
+    // !!! TODO extend to allow multiple selected states (e.g. selected weapon vs clicked in inventory vs none etc) 
+    public void SetSelected(bool selected)
+    {
         selectedBackdrop.SetActive(selected);
         unselectedBackdrop.SetActive(!selected);
     }
-
 }

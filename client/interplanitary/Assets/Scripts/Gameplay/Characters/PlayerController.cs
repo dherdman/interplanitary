@@ -98,6 +98,7 @@ public class PlayerController : GenericCharacterController
 
     void Update()
     {
+        // !!! TODO if/else seems to be causing a lag between closing inventory & being able to fire gun
         if(Input.GetButtonDown(InputAxis.PlayerControl.INVENTORY))
         {
             UIManager.instance.ToggleScreen(ScreenName.Inventory, null, CharacterInstance);

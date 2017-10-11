@@ -118,6 +118,7 @@ GameObject:
   - component: {fileID: 452459391}
   - component: {fileID: 452459390}
   - component: {fileID: 452459389}
+  - component: {fileID: 452459388}
   m_Layer: 0
   m_Name: Event System
   m_TagString: Untagged
@@ -125,6 +126,24 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &452459388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 452459387}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1077351063, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HorizontalAxis: MouseX
+  m_VerticalAxis: MouseY
+  m_SubmitButton: Submit
+  m_CancelButton: Cancel
+  m_InputActionsPerSecond: 10
+  m_RepeatDelay: 0.5
+  m_ForceModuleActive: 0
 --- !u!114 &452459389
 MonoBehaviour:
   m_ObjectHideFlags: 0
